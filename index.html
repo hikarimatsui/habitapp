@@ -1,33 +1,40 @@
 <!doctype html>
 <html lang="ja">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>習慣化には60日かかる</title>
-<style>html,body{margin:0;background:#F2F2EF;-webkit-text-size-adjust:100%}</style>
-<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#F2F2EF;font-family:"Helvetica Neue",Helvetica,Arial,"Hiragino Sans","Yu Gothic",sans-serif;-webkit-text-size-adjust:100%}
+button{cursor:pointer;border:none;font-family:inherit}
+button:disabled{cursor:default}
+input,select{font-family:inherit;box-sizing:border-box}
+.hb{transition:transform .08s}
+.hb:active{transform:translateY(1px)}
+@keyframes tIn{from{transform:translate(-50%,14px);opacity:0}to{transform:translate(-50%,0);opacity:1}}
+@keyframes bIn{0%{transform:translate(-50%,0) scale(.7);opacity:0}40%{transform:translate(-50%,0) scale(1.1);opacity:1}100%{transform:translate(-50%,0) scale(1);opacity:1}}
+</style>
 </head>
 <body>
-<div id="root"></div>
-<script type="text/babel">
-const {useState,useEffect,useRef,useCallback} = React;
+<script src="https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js"></script>
+<div id="app"></div>
+<script>
+var e=React.createElement;
+var useState=React.useState,useEffect=React.useEffect,useRef=React.useRef,useCallback=React.useCallback;
 
 if(!window.storage){window.storage={
-  get:async k=>{const v=localStorage.getItem(k);return v==null?null:{key:k,value:v}},
-  set:async(k,v)=>{localStorage.setItem(k,v);return{key:k,value:v}},
-  delete:async k=>{localStorage.removeItem(k);return{key:k,deleted:true}},
-  list:async(p="")=>({keys:Object.keys(localStorage).filter(x=>x.startsWith(p))}),
-};}
+  get:function(k){return Promise.resolve((function(){var v=localStorage.getItem(k);return v==null?null:{key:k,value:v}})())},
+  set:function(k,v){localStorage.setItem(k,v);return Promise.resolve({key:k,value:v})},
+};};
 
-const BG="#F2F2EF",SUR="#FFFFFF",INK="#0E0F12",INK2="#5C616B",INK3="#9A9EA6",
-      LINE="#E3E3DF",LDARK="#15171B",ACC="#1F35FF",FAINT="#F7F7F4";
-const SANS='"Helvetica Neue",Helvetica,Arial,"Hiragino Sans","Yu Gothic",sans-serif';
-const MONO='"SF Mono",ui-monospace,Menlo,Consolas,monospace';
-const KEY="habit60:v4",GOAL=60;
+var INK="#0E0F12",INK2="#5C616B",INK3="#9A9EA6",ACC="#1F35FF",SUR="#FFFFFF",
+    LINE="#E3E3DF",LDARK="#15171B",FAINT="#F7F7F4",BG="#F2F2EF";
+var MONO='"SF Mono",ui-monospace,Menlo,Consolas,monospace';
+var KEY="habit60:v5",GOAL=60;
 
-const QUOTES=[
+var QUOTES=[
   "われ日々に省みること三あり。 ——論語",
   "千里の道も、一歩から始まる。 ——老子",
   "人は繰り返す行為の産物である。だから卓越性は行為でなく習慣だ。 ——アリストテレス",
@@ -52,12 +59,11 @@ const QUOTES=[
   "敵に勝つより自分に勝て。 ——武道の格言",
   "焦らず、休まず。 ——ゲーテ",
   "人生は習慣の織物である。 ——スウィフト",
-  "自分の心が正しいと思う道を行け。 ——エレノア・ルーズベルト",
 ];
-const PRAISE=["すごい！","神！","さすが！","完璧！","最高！","天才！","やばい！","強すぎ！","無敵！","伝説！"];
-const EMOJIS=["☕","🎬","📚","♨️","🎁","🍣","🎮","🛍️","✈️","🏖️","🍰","🎧","🍜","🎯","🏋️","🎪","🌸","🍷","🎨","🎵"];
+var PRAISE=["すごい！","神！","さすが！","完璧！","最高！","天才！","やばい！","強すぎ！","無敵！","伝説！"];
+var EMOJIS=["☕","🎬","📚","♨️","🎁","🍣","🎮","🛍️","✈️","🏖️","🍰","🎧","🍜","🎯","🏋️","🎪","🌸","🍷","🎨","🎵"];
 
-const DEF={balance:0,totalEarned:0,totalClears:0,streak:0,bestStreak:0,lastActiveDate:null,history:[],
+var DEF={balance:0,totalEarned:0,totalClears:0,streak:0,bestStreak:0,lastActiveDate:null,history:[],
   items:[
     {id:"i1",name:"朝6時に起床",pts:3,date:null,cnt:0},
     {id:"i2",name:"30分の運動",pts:5,date:null,cnt:0},
@@ -74,363 +80,309 @@ const DEF={balance:0,totalEarned:0,totalClears:0,streak:0,bestStreak:0,lastActiv
   ],
 };
 
-const uid=()=>Math.random().toString(36).slice(2,9);
-const fmt=ms=>{const d=new Date(ms);return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");};
-const td=()=>fmt(Date.now());
-const yd=()=>{const d=new Date();d.setDate(d.getDate()-1);return fmt(d);};
-const doy=()=>{const n=new Date(),s=new Date(n.getFullYear(),0,0);return Math.floor((n-s)/864e5);};
-const pick=a=>a[Math.floor(Math.random()*a.length)];
-const dateDiff=(d1,d2)=>Math.round((new Date(d2)-new Date(d1))/86400000);
+function uid(){return Math.random().toString(36).slice(2,9)}
+function fmt(ms){var d=new Date(ms);return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+function td(){return fmt(Date.now())}
+function yd(){var d=new Date();d.setDate(d.getDate()-1);return fmt(d)}
+function doy(){var n=new Date(),s=new Date(n.getFullYear(),0,0);return Math.floor((n-s)/864e5)}
+function pick(a){return a[Math.floor(Math.random()*a.length)]}
+function dateDiff(d1,d2){return Math.round((new Date(d2)-new Date(d1))/86400000)}
+
+function inp(extra){return Object.assign({border:"1px solid "+LINE,background:"#fff",borderRadius:2,padding:"9px 11px",fontSize:14,color:INK,outline:"none",width:"100%"},extra||{})}
+function eb(extra){return Object.assign({fontFamily:MONO,fontSize:11,letterSpacing:"0.18em",color:INK2,textTransform:"uppercase"},extra||{})}
+function btn(bg,color,extra){return Object.assign({background:bg,color:color,fontWeight:800,fontSize:13,borderRadius:2,padding:"10px 0",border:"none",cursor:"pointer"},extra||{})}
 
 function App(){
-  const [s,setS]=useState(null);
-  const [tab,setTab]=useState("home");
-  const [toast,setToast]=useState(null);
-  const [pulse,setPulse]=useState(false);
-  const [bal,setBal]=useState(0);
-  const [logOpen,setLogOpen]=useState(false);
-  const [logItemId,setLogItemId]=useState("");
-  const [logDate,setLogDate]=useState("");
-  const [logCount,setLogCount]=useState("");
-  const [emojiPicker,setEmojiPicker]=useState(null);
-  const raf=useRef(null);
+  var ss=useState(null),s=ss[0],setS=ss[1];
+  var tt=useState("home"),tab=tt[0],setTab=tt[1];
+  var to=useState(null),toast=to[0],setToast=to[1];
+  var pp=useState(false),pulse=pp[0],setPulse=pp[1];
+  var bb=useState(0),bal=bb[0],setBal=bb[1];
+  var lo=useState(false),logOpen=lo[0],setLogOpen=lo[1];
+  var li=useState(""),logItemId=li[0],setLogItemId=li[1];
+  var ld=useState(""),logDate=ld[0],setLogDate=ld[1];
+  var lc=useState(""),logCount=lc[0],setLogCount=lc[1];
+  var ep=useState(null),emojiPicker=ep[0],setEmojiPicker=ep[1];
+  var raf=useRef(null);
 
-  useEffect(()=>{
-    (async()=>{
-      let d=JSON.parse(JSON.stringify(DEF));
-      try{const r=await window.storage.get(KEY);if(r&&r.value)d=JSON.parse(r.value);}catch(e){}
-      d.items=(d.items||[]).map(it=>({...it,pts:it.pts??it.points??0,date:it.date??it.lastClearedDate??null,cnt:it.cnt??it.todayCount??0}));
-      d.rewards=(d.rewards||[]).map(r=>({...r,emoji:r.emoji||"🎁"}));
-      const today=td();
-      d.items=d.items.map(it=>it.date!==today?{...it,cnt:0}:it);
+  useEffect(function(){
+    (async function(){
+      var d=JSON.parse(JSON.stringify(DEF));
+      try{var r=await window.storage.get(KEY);if(r&&r.value)d=JSON.parse(r.value);}catch(err){}
+      d.items=(d.items||[]).map(function(it){return Object.assign({},it,{pts:it.pts!=null?it.pts:(it.points||0),date:it.date||it.lastClearedDate||null,cnt:it.cnt||it.todayCount||0})});
+      d.rewards=(d.rewards||[]).map(function(r){return Object.assign({},r,{emoji:r.emoji||"🎁"})});
+      var today=td();
+      d.items=d.items.map(function(it){return it.date!==today?Object.assign({},it,{cnt:0}):it});
       if(d.lastActiveDate&&d.lastActiveDate!==today&&d.lastActiveDate!==yd())d.streak=0;
       setS(d);setBal(d.balance);
     })();
-    return()=>cancelAnimationFrame(raf.current);
+    return function(){cancelAnimationFrame(raf.current)};
   },[]);
 
-  const save=async next=>{setS(next);try{await window.storage.set(KEY,JSON.stringify(next));}catch(e){}};
+  function save(next){setS(next);try{window.storage.set(KEY,JSON.stringify(next));}catch(e){}}
 
-  const showToast=(msg,big)=>{setToast({msg,big});setTimeout(()=>setToast(null),big?1400:1800);};
+  function showToast(msg,big){setToast({msg:msg,big:big});setTimeout(function(){setToast(null)},big?1400:1800)}
 
-  const animBal=useCallback((from,to)=>{
+  var animBal=useCallback(function(from,to){
     cancelAnimationFrame(raf.current);
-    const t0=performance.now();
-    const step=t=>{const k=Math.min(1,(t-t0)/420);setBal(Math.round(from+(to-from)*(1-Math.pow(1-k,3))));if(k<1)raf.current=requestAnimationFrame(step);};
+    var t0=performance.now();
+    function step(t){var k=Math.min(1,(t-t0)/420);setBal(Math.round(from+(to-from)*(1-Math.pow(1-k,3))));if(k<1)raf.current=requestAnimationFrame(step);}
     raf.current=requestAnimationFrame(step);
   },[]);
 
-  if(!s)return React.createElement("div",{style:{fontFamily:SANS,padding:40,textAlign:"center",color:INK2}},"読み込み中…");
+  if(!s)return e("div",{style:{padding:40,textAlign:"center",color:INK2}},"読み込み中…");
 
-  const today=td(),yesterday=yd();
-  const doneN=s.items.filter(i=>i.date===today&&i.cnt>0).length;
-  const pct=s.items.length?Math.round(doneN/s.items.length*100):0;
-  const quote=QUOTES[doy()%QUOTES.length];
+  var today=td(),yesterday=yd();
+  var doneN=s.items.filter(function(i){return i.date===today&&i.cnt>0}).length;
+  var pct=s.items.length?Math.round(doneN/s.items.length*100):0;
+  var quote=QUOTES[doy()%QUOTES.length];
 
-  const clearItem=item=>{
-    const pts=Number(item.pts)||0;
-    let streak=s.streak;
+  function clearItem(item){
+    var pts=Number(item.pts)||0;
+    var streak=s.streak;
     if(s.lastActiveDate===today){}
     else if(s.lastActiveDate===yesterday)streak=s.streak+1;
     else streak=1;
-    const best=Math.max(s.bestStreak,streak);
-    const newBal=s.balance+pts;
-    const cnt=(item.date===today?item.cnt:0)+1;
-    const entry={id:uid(),name:item.name,pts,at:Date.now(),date:today};
-    const next={...s,balance:newBal,totalEarned:s.totalEarned+pts,totalClears:s.totalClears+1,streak,bestStreak:best,lastActiveDate:today,
-      items:s.items.map(it=>it.id===item.id?{...it,date:today,cnt}:it),
-      history:[entry,...s.history].slice(0,500)};
-    save(next);animBal(s.balance,newBal);
-    setPulse(true);setTimeout(()=>setPulse(false),320);
+    var best=Math.max(s.bestStreak,streak);
+    var newBal=s.balance+pts;
+    var cnt=(item.date===today?item.cnt:0)+1;
+    var entry={id:uid(),name:item.name,pts:pts,at:Date.now(),date:today};
+    save(Object.assign({},s,{balance:newBal,totalEarned:s.totalEarned+pts,totalClears:s.totalClears+1,streak:streak,bestStreak:best,lastActiveDate:today,
+      items:s.items.map(function(it){return it.id===item.id?Object.assign({},it,{date:today,cnt:cnt}):it}),
+      history:[entry].concat(s.history).slice(0,500)}));
+    animBal(s.balance,newBal);
+    setPulse(true);setTimeout(function(){setPulse(false)},320);
     showToast(pick(PRAISE)+"  +"+pts+" pt",true);
-  };
+  }
 
-  const addPastLog=()=>{
+  function addPastLog(){
     if(!logItemId||!logDate)return;
-    const item=s.items.find(i=>i.id===logItemId);if(!item)return;
-    const count=Math.max(1,parseInt(logCount)||1);
-    const pts=(Number(item.pts)||0)*count;
-    const newBal=s.balance+pts;
-    const entries=Array.from({length:count},()=>({id:uid(),name:item.name,pts:Number(item.pts)||0,at:new Date(logDate).getTime(),date:logDate}));
-    let newStreak=s.streak,newLast=s.lastActiveDate;
-    if(s.lastActiveDate){
-      const diff=dateDiff(logDate,s.lastActiveDate);
-      if(diff===1){newStreak=s.streak+1;newLast=logDate;}
-    }else{newStreak=1;newLast=logDate;}
-    const best=Math.max(s.bestStreak,newStreak);
-    const next={...s,balance:newBal,totalEarned:s.totalEarned+pts,totalClears:s.totalClears+count,
+    var item=s.items.find(function(i){return i.id===logItemId});if(!item)return;
+    var count=Math.max(1,parseInt(logCount)||1);
+    var pts=(Number(item.pts)||0)*count;
+    var newBal=s.balance+pts;
+    var entries=[];
+    for(var i=0;i<count;i++)entries.push({id:uid(),name:item.name,pts:Number(item.pts)||0,at:new Date(logDate).getTime(),date:logDate});
+    var newStreak=s.streak,newLast=s.lastActiveDate;
+    if(s.lastActiveDate){var diff=dateDiff(logDate,s.lastActiveDate);if(diff===1){newStreak=s.streak+1;newLast=logDate;}}
+    else{newStreak=1;newLast=logDate;}
+    var best=Math.max(s.bestStreak,newStreak);
+    save(Object.assign({},s,{balance:newBal,totalEarned:s.totalEarned+pts,totalClears:s.totalClears+count,
       streak:newStreak,bestStreak:best,lastActiveDate:newLast,
-      history:[...entries,...s.history].slice(0,500)};
-    save(next);animBal(s.balance,newBal);
+      history:entries.concat(s.history).slice(0,500)}));
+    animBal(s.balance,newBal);
     showToast("過去記録を追加しました  +"+pts+" pt");
     setLogOpen(false);setLogItemId("");setLogDate("");setLogCount("");
-  };
+  }
 
-  const redeem=r=>{
-    const price=Number(r.price)||0;if(s.balance<price)return;
-    const newBal=s.balance-price;
-    save({...s,balance:newBal,rewards:s.rewards.map(x=>x.id===r.id?{...x,n:(x.n||0)+1}:x)});
+  function redeem(r){
+    var price=Number(r.price)||0;if(s.balance<price)return;
+    var newBal=s.balance-price;
+    save(Object.assign({},s,{balance:newBal,rewards:s.rewards.map(function(x){return x.id===r.id?Object.assign({},x,{n:(x.n||0)+1}):x})}));
     animBal(s.balance,newBal);showToast("「"+r.name+"」と交換しました");
-  };
+  }
 
-  const upItem=(id,p)=>save({...s,items:s.items.map(it=>it.id===id?{...it,...p}:it)});
-  const addItem=()=>save({...s,items:[...s.items,{id:uid(),name:"",pts:"",date:null,cnt:0}]});
-  const delItem=id=>save({...s,items:s.items.filter(it=>it.id!==id)});
-  const upReward=(id,p)=>save({...s,rewards:s.rewards.map(r=>r.id===id?{...r,...p}:r)});
-  const addReward=()=>save({...s,rewards:[...s.rewards,{id:uid(),name:"",price:"",n:0,emoji:"🎁"}]});
-  const delReward=id=>save({...s,rewards:s.rewards.filter(r=>r.id!==id)});
-  const mvReward=(i,dir)=>{const a=[...s.rewards],j=i+dir;if(j<0||j>=a.length)return;[a[i],a[j]]=[a[j],a[i]];save({...s,rewards:a});};
-  const resetAll=()=>{if(window.confirm("初期化しますか？")){const f=JSON.parse(JSON.stringify(DEF));save(f);setBal(0);}};
+  function upItem(id,p){save(Object.assign({},s,{items:s.items.map(function(it){return it.id===id?Object.assign({},it,p):it})}))}
+  function addItem(){save(Object.assign({},s,{items:s.items.concat([{id:uid(),name:"",pts:"",date:null,cnt:0}])}))}
+  function delItem(id){save(Object.assign({},s,{items:s.items.filter(function(it){return it.id!==id})}))}
+  function upReward(id,p){save(Object.assign({},s,{rewards:s.rewards.map(function(r){return r.id===id?Object.assign({},r,p):r})}))}
+  function addReward(){save(Object.assign({},s,{rewards:s.rewards.concat([{id:uid(),name:"",price:"",n:0,emoji:"🎁"}])}))}
+  function delReward(id){save(Object.assign({},s,{rewards:s.rewards.filter(function(r){return r.id!==id})}))}
+  function mvReward(i,dir){var a=s.rewards.slice(),j=i+dir;if(j<0||j>=a.length)return;var t=a[i];a[i]=a[j];a[j]=t;save(Object.assign({},s,{rewards:a}))}
+  function resetAll(){if(window.confirm("初期化しますか？")){save(JSON.parse(JSON.stringify(DEF)));setBal(0)}}
 
-  const EB={fontFamily:MONO,fontSize:11,letterSpacing:"0.18em",color:INK2,textTransform:"uppercase"};
-  const inp={fontFamily:SANS,border:"1px solid "+LINE,background:"#fff",borderRadius:2,padding:"9px 11px",fontSize:14,color:INK,outline:"none",width:"100%",boxSizing:"border-box"};
+  return e("div",{style:{background:BG,minHeight:"100vh",color:INK,maxWidth:760,margin:"0 auto"},onClick:function(){emojiPicker&&setEmojiPicker(null)}},
 
-  return (
-    <div style={{fontFamily:SANS,background:BG,minHeight:"100vh",color:INK,maxWidth:760,margin:"0 auto"}} onClick={()=>emojiPicker&&setEmojiPicker(null)}>
-      <style>{".hb{transition:transform .08s,background .15s} .hb:active{transform:translateY(1px)} @keyframes tIn{from{transform:translate(-50%,14px);opacity:0}to{transform:translate(-50%,0);opacity:1}} @keyframes bIn{0%{transform:translate(-50%,0) scale(.7);opacity:0}40%{transform:translate(-50%,0) scale(1.08);opacity:1}100%{transform:translate(-50%,0) scale(1);opacity:1}}"}</style>
+    // トップバー
+    e("div",{style:{borderBottom:"2px solid "+LDARK,background:SUR,padding:"16px 20px 14px",display:"flex",justifyContent:"space-between",alignItems:"center"}},
+      e("div",null,
+        e("div",{style:eb()},"HABIT TRACKER"),
+        e("div",{style:{fontSize:19,fontWeight:800,letterSpacing:"-0.01em",marginTop:3}},"習慣化には60日かかる")
+      ),
+      e("div",{style:{textAlign:"right"}},
+        e("div",{style:eb({fontSize:10})},"BALANCE"),
+        e("div",{style:{fontFamily:MONO,fontSize:22,fontWeight:700,color:pulse?ACC:INK,transition:"color .2s",transform:pulse?"scale(1.1)":"scale(1)"}},
+          bal,e("span",{style:{fontSize:12,marginLeft:2}},"pt")
+        )
+      )
+    ),
 
-      {/* トップバー */}
-      <div style={{borderBottom:"2px solid "+LDARK,background:SUR,padding:"16px 20px 14px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-        <div>
-          <div style={EB}>HABIT TRACKER</div>
-          <div style={{fontSize:19,fontWeight:800,letterSpacing:"-0.01em",marginTop:3}}>習慣化には60日かかる</div>
-        </div>
-        <div style={{textAlign:"right"}}>
-          <div style={{...EB,fontSize:10}}>BALANCE</div>
-          <div style={{fontFamily:MONO,fontSize:22,fontWeight:700,color:pulse?ACC:INK,transition:"color .2s",transform:pulse?"scale(1.1)":"scale(1)"}}>
-            {bal}<span style={{fontSize:12,marginLeft:2}}>pt</span>
-          </div>
-        </div>
-      </div>
+    // タブ
+    e("div",{style:{display:"flex",background:SUR,borderBottom:"1px solid "+LINE,position:"sticky",top:0,zIndex:5}},
+      [{k:"home",l:"今日"},{k:"shop",l:"ショップ"},{k:"settings",l:"設定"}].map(function(t){
+        var on=tab===t.k;
+        return e("button",{key:t.k,onClick:function(){setTab(t.k)},style:{flex:1,padding:"13px 0",background:"transparent",fontSize:13,fontWeight:on?800:600,color:on?INK:INK3,border:"none",borderBottom:on?"2px solid "+ACC:"2px solid transparent",cursor:"pointer"}},t.l);
+      })
+    ),
 
-      {/* タブ */}
-      <div style={{display:"flex",background:SUR,borderBottom:"1px solid "+LINE,position:"sticky",top:0,zIndex:5}}>
-        {[{k:"home",l:"今日"},{k:"shop",l:"ショップ"},{k:"settings",l:"設定"}].map(t=>{
-          const on=tab===t.k;
-          return <button key={t.k} onClick={()=>setTab(t.k)} style={{flex:1,padding:"13px 0",background:"transparent",fontSize:13,fontWeight:on?800:600,color:on?INK:INK3,border:"none",borderBottom:on?"2px solid "+ACC:"2px solid transparent",cursor:"pointer",fontFamily:SANS}}>{t.l}</button>;
-        })}
-      </div>
+    e("div",{style:{padding:"22px 20px 70px"}},
 
-      <div style={{padding:"22px 20px 70px"}}>
+      // ===== 今日 =====
+      tab==="home"&&e("div",null,
 
-        {tab==="home" && <div>
-          {/* ストリーク大カード */}
-          <div style={{background:INK,borderRadius:4,padding:"24px 20px",marginBottom:20,display:"flex",alignItems:"center",justifyContent:"space-between",gap:16}}>
-            <div>
-              <div style={{fontFamily:MONO,fontSize:10,letterSpacing:"0.18em",color:"rgba(255,255,255,.4)",textTransform:"uppercase"}}>CURRENT STREAK</div>
-              <div style={{display:"flex",alignItems:"baseline",gap:10,marginTop:4}}>
-                <span style={{fontSize:88,fontWeight:800,lineHeight:.85,letterSpacing:"-0.04em",color:"#fff"}}>{s.streak}</span>
-                <span style={{fontSize:20,fontWeight:700,color:"rgba(255,255,255,.7)"}}>日連続</span>
-              </div>
-              <div style={{marginTop:10,display:"flex",gap:16}}>
-                <div>
-                  <div style={{fontFamily:MONO,fontSize:9,letterSpacing:"0.18em",color:"rgba(255,255,255,.4)",textTransform:"uppercase"}}>BEST</div>
-                  <div style={{fontFamily:MONO,fontSize:15,fontWeight:700,color:"rgba(255,255,255,.85)"}}>{s.bestStreak} 日</div>
-                </div>
-                <div>
-                  <div style={{fontFamily:MONO,fontSize:9,letterSpacing:"0.18em",color:"rgba(255,255,255,.4)",textTransform:"uppercase"}}>TOTAL CLEARS</div>
-                  <div style={{fontFamily:MONO,fontSize:15,fontWeight:700,color:"rgba(255,255,255,.85)"}}>{s.totalClears} 回</div>
-                </div>
-              </div>
-            </div>
-            <div style={{minWidth:100}}>
-              <div style={{fontFamily:MONO,fontSize:9,letterSpacing:"0.18em",color:"rgba(255,255,255,.4)",textTransform:"uppercase",marginBottom:6,textAlign:"right"}}>
-                {s.streak>=GOAL?"達成":"あと "+(GOAL-s.streak)+" 日"}
-              </div>
-              <div style={{display:"grid",gridTemplateColumns:"repeat(10,1fr)",gap:2}}>
-                {Array.from({length:GOAL}).map((_,i)=>(
-                  <div key={i} style={{aspectRatio:"1/1",background:i<s.streak?"#fff":"rgba(255,255,255,.15)",borderRadius:1}}/>
-                ))}
-              </div>
-            </div>
-          </div>
+        // ストリーク大カード
+        e("div",{style:{background:INK,borderRadius:4,padding:"24px 20px",marginBottom:20,display:"flex",alignItems:"center",justifyContent:"space-between",gap:16}},
+          e("div",null,
+            e("div",{style:{fontFamily:MONO,fontSize:10,letterSpacing:"0.18em",color:"rgba(255,255,255,.4)",textTransform:"uppercase"}},"CURRENT STREAK"),
+            e("div",{style:{display:"flex",alignItems:"baseline",gap:10,marginTop:4}},
+              e("span",{style:{fontSize:88,fontWeight:800,lineHeight:.85,letterSpacing:"-0.04em",color:"#fff"}},s.streak),
+              e("span",{style:{fontSize:20,fontWeight:700,color:"rgba(255,255,255,.7)"}},"日連続")
+            ),
+            e("div",{style:{marginTop:10,display:"flex",gap:16}},
+              e("div",null,e("div",{style:{fontFamily:MONO,fontSize:9,color:"rgba(255,255,255,.4)",textTransform:"uppercase",letterSpacing:"0.18em"}},"BEST"),e("div",{style:{fontFamily:MONO,fontSize:15,fontWeight:700,color:"rgba(255,255,255,.85)"}},s.bestStreak+" 日")),
+              e("div",null,e("div",{style:{fontFamily:MONO,fontSize:9,color:"rgba(255,255,255,.4)",textTransform:"uppercase",letterSpacing:"0.18em"}},"TOTAL CLEARS"),e("div",{style:{fontFamily:MONO,fontSize:15,fontWeight:700,color:"rgba(255,255,255,.85)"}},s.totalClears+" 回"))
+            )
+          ),
+          e("div",{style:{minWidth:100}},
+            e("div",{style:{fontFamily:MONO,fontSize:9,color:"rgba(255,255,255,.4)",textTransform:"uppercase",letterSpacing:"0.18em",marginBottom:6,textAlign:"right"}},s.streak>=GOAL?"達成":"あと "+(GOAL-s.streak)+" 日"),
+            e("div",{style:{display:"grid",gridTemplateColumns:"repeat(10,1fr)",gap:2}},
+              Array.from({length:GOAL}).map(function(_,i){return e("div",{key:i,style:{aspectRatio:"1/1",background:i<s.streak?"#fff":"rgba(255,255,255,.15)",borderRadius:1}})})
+            )
+          )
+        ),
 
-          {/* 格言 */}
-          <div style={{borderLeft:"3px solid "+ACC,padding:"8px 0 8px 14px",marginBottom:24}}>
-            <div style={{fontFamily:MONO,fontSize:10,letterSpacing:"0.18em",color:INK2,textTransform:"uppercase",marginBottom:4}}>TODAY'S WORD</div>
-            <div style={{fontSize:15,fontWeight:700,lineHeight:1.6}}>{quote}</div>
-          </div>
+        // 格言
+        e("div",{style:{borderLeft:"3px solid "+ACC,padding:"8px 0 8px 14px",marginBottom:24}},
+          e("div",{style:eb({fontSize:10,marginBottom:4})},"TODAY'S WORD"),
+          e("div",{style:{fontSize:15,fontWeight:700,lineHeight:1.6}},quote)
+        ),
 
-          {/* 今日の進捗 */}
-          <div>
-            <div style={{display:"flex",justifyContent:"space-between",marginBottom:8}}>
-              <span style={EB}>TODAY</span>
-              {doneN===0&&<span style={{fontSize:12,fontWeight:700,color:ACC}}>今日はまだ未達成</span>}
-              {doneN===s.items.length&&s.items.length>0&&<span style={{fontSize:12,fontWeight:700}}>本日コンプリート</span>}
-            </div>
-            <div style={{height:5,background:LINE,marginBottom:14,overflow:"hidden"}}>
-              <div style={{width:pct+"%",height:"100%",background:INK,transition:"width .4s"}}/>
-            </div>
-            <div style={{display:"grid",gap:8}}>
-              {s.items.map(it=>{
-                const cnt=it.date===today?it.cnt:0;
-                const pts=Number(it.pts)||0;
-                return (
-                  <div key={it.id} style={{display:"flex",alignItems:"center",gap:12,background:cnt>0?FAINT:SUR,border:"1px solid "+(cnt>0?LINE:LDARK),borderRadius:2,padding:"13px 14px"}}>
-                    <div style={{flex:1,minWidth:0}}>
-                      <div style={{fontWeight:700,fontSize:15}}>{it.name||"（名称未設定）"}</div>
-                    </div>
-                    {cnt>0&&<span style={{fontFamily:MONO,fontSize:12,fontWeight:800,color:ACC}}>{"x"+cnt}</span>}
-                    <span style={{fontFamily:MONO,fontSize:13,fontWeight:700,color:INK2}}>{"+" +pts}</span>
-                    <button className="hb" onClick={()=>clearItem(it)} style={{background:INK,color:"#fff",fontWeight:800,fontSize:13,padding:"9px 0",width:64,borderRadius:2,border:"none",cursor:"pointer",fontFamily:SANS}}>クリア</button>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* 過去ログ */}
-          <div style={{marginTop:30,borderTop:"1px solid "+LINE,paddingTop:20}}>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
-              <span style={EB}>PAST LOG</span>
-              <button className="hb" onClick={()=>setLogOpen(o=>!o)} style={{background:logOpen?LINE:INK,color:logOpen?INK:"#fff",fontWeight:800,fontSize:12,padding:"7px 14px",borderRadius:2,border:"none",cursor:"pointer",fontFamily:SANS}}>
-                {logOpen?"閉じる":"過去の記録を追加"}
-              </button>
-            </div>
-            {logOpen&&(
-              <div style={{background:SUR,border:"1px solid "+LINE,borderRadius:2,padding:16,display:"grid",gap:10,marginBottom:12}}>
-                <div>
-                  <div style={{...EB,fontSize:10,marginBottom:6}}>習慣</div>
-                  <select value={logItemId} onChange={e=>setLogItemId(e.target.value)} style={{...inp}}>
-                    <option value="">選択してください</option>
-                    {s.items.map(it=><option key={it.id} value={it.id}>{it.name||"（名称未設定）"}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <div style={{...EB,fontSize:10,marginBottom:6}}>日付</div>
-                  <input type="date" value={logDate} max={yesterday} onChange={e=>setLogDate(e.target.value)} style={inp}/>
-                </div>
-                <div>
-                  <div style={{...EB,fontSize:10,marginBottom:6}}>回数</div>
-                  <input type="number" min={1} placeholder="回数" value={logCount} onChange={e=>setLogCount(e.target.value)} style={inp}/>
-                </div>
-                <button className="hb" onClick={addPastLog} disabled={!logItemId||!logDate}
-                  style={{background:logItemId&&logDate?ACC:FAINT,color:logItemId&&logDate?"#fff":INK3,fontWeight:800,fontSize:14,padding:12,borderRadius:2,border:"none",cursor:"pointer",fontFamily:SANS}}>
-                  追加する
-                </button>
-              </div>
-            )}
-            {s.history.length>0&&(
-              <div style={{display:"grid",gap:6}}>
-                {s.history.slice(0,8).map(h=>(
-                  <div key={h.id} style={{display:"flex",justifyContent:"space-between",fontSize:12,color:INK2,padding:"6px 0",borderBottom:"1px solid "+LINE}}>
-                    <span>{h.date} · {h.name}</span>
-                    <span style={{fontFamily:MONO,fontWeight:700,color:INK}}>{"+" +h.pts+" pt"}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>}
-
-        {tab==="shop"&&<div>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-end",borderBottom:"2px solid "+LDARK,paddingBottom:12,marginBottom:18}}>
-            <div>
-              <div style={EB}>REWARD SHOP</div>
-              <div style={{fontSize:18,fontWeight:800,marginTop:2}}>ためたポイントで交換</div>
-            </div>
-            <div style={{textAlign:"right"}}>
-              <div style={{...EB,fontSize:10}}>残ポイント</div>
-              <div style={{fontFamily:MONO,fontSize:24,fontWeight:800,color:ACC}}>{bal+" pt"}</div>
-            </div>
-          </div>
-          <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:12}}>
-            {s.rewards.map(r=>{
-              const price=Number(r.price)||0,ok=s.balance>=price;
-              return (
-                <div key={r.id} style={{border:"1px solid "+(ok?LDARK:LINE),borderRadius:2,background:SUR,overflow:"hidden",display:"flex",flexDirection:"column"}}>
-                  <div style={{aspectRatio:"4/3",background:ok?INK:FAINT,display:"flex",alignItems:"center",justifyContent:"center",position:"relative"}}>
-                    <span style={{fontSize:52}}>{r.emoji||"🎁"}</span>
-                    {ok&&<span style={{position:"absolute",top:8,left:8,fontFamily:MONO,fontSize:9,letterSpacing:"0.1em",background:ACC,color:"#fff",padding:"3px 6px"}}>交換可能</span>}
-                    {r.n>0&&<span style={{position:"absolute",top:8,right:8,fontFamily:MONO,fontSize:10,fontWeight:700,color:ok?"#fff":INK2}}>{"x"+r.n}</span>}
-                  </div>
-                  <div style={{padding:"12px 12px 14px",display:"flex",flexDirection:"column",flex:1}}>
-                    <div style={{fontWeight:700,fontSize:14,lineHeight:1.35,minHeight:38}}>{r.name||"（名称未設定）"}</div>
-                    <div style={{fontFamily:MONO,fontSize:18,fontWeight:800,margin:"6px 0 10px"}}>{price}<span style={{fontSize:12}}> pt</span></div>
-                    <button className="hb" disabled={!ok} onClick={()=>redeem(r)}
-                      style={{padding:"11px 0",borderRadius:2,fontWeight:800,fontSize:13,background:ok?ACC:FAINT,color:ok?"#fff":INK3,border:ok?"none":"1px solid "+LINE,cursor:ok?"pointer":"default",fontFamily:SANS}}>
-                      {ok?"交換する":"あと "+(price-s.balance)+" pt"}
-                    </button>
-                  </div>
-                </div>
+        // 今日
+        e("div",null,
+          e("div",{style:{display:"flex",justifyContent:"space-between",marginBottom:8}},
+            e("span",{style:eb()},"TODAY"),
+            doneN===0&&e("span",{style:{fontSize:12,fontWeight:700,color:ACC}},"今日はまだ未達成"),
+            doneN===s.items.length&&s.items.length>0&&e("span",{style:{fontSize:12,fontWeight:700}},"本日コンプリート")
+          ),
+          e("div",{style:{height:5,background:LINE,marginBottom:14,overflow:"hidden"}},
+            e("div",{style:{width:pct+"%",height:"100%",background:INK,transition:"width .4s"}})
+          ),
+          e("div",{style:{display:"grid",gap:8}},
+            s.items.map(function(it){
+              var cnt=it.date===today?it.cnt:0,pts=Number(it.pts)||0;
+              return e("div",{key:it.id,style:{display:"flex",alignItems:"center",gap:12,background:cnt>0?FAINT:SUR,border:"1px solid "+(cnt>0?LINE:LDARK),borderRadius:2,padding:"13px 14px"}},
+                e("div",{style:{flex:1,minWidth:0}},e("div",{style:{fontWeight:700,fontSize:15}},it.name||"（名称未設定）")),
+                cnt>0&&e("span",{style:{fontFamily:MONO,fontSize:12,fontWeight:800,color:ACC}},"x"+cnt),
+                e("span",{style:{fontFamily:MONO,fontSize:13,fontWeight:700,color:INK2}},"+"+pts),
+                e("button",{className:"hb",onClick:function(){clearItem(it)},style:{background:INK,color:"#fff",fontWeight:800,fontSize:13,padding:"9px 0",width:64,borderRadius:2,border:"none",cursor:"pointer"}},"クリア")
               );
-            })}
-          </div>
-        </div>}
+            })
+          )
+        ),
 
-        {tab==="settings"&&<div>
-          <div style={{...EB,marginBottom:12}}>習慣の編集</div>
-          <div style={{display:"grid",gap:12}}>
-            {s.items.map(it=>(
-              <div key={it.id} style={{background:SUR,border:"1px solid "+LINE,borderRadius:2,padding:12}}>
-                <input style={{...inp,fontWeight:700,marginBottom:8}} placeholder="習慣名" value={it.name} onChange={e=>upItem(it.id,{name:e.target.value})}/>
-                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-                  <label style={{fontSize:13,color:INK2,display:"flex",alignItems:"center",gap:8}}>
-                    ポイント
-                    <input type="number" min={0} placeholder="例：3" style={{...inp,width:80}} value={it.pts} onChange={e=>upItem(it.id,{pts:e.target.value})}/>
-                  </label>
-                  <button onClick={()=>delItem(it.id)} style={{background:"transparent",color:ACC,fontSize:13,fontWeight:700,border:"none",cursor:"pointer",fontFamily:SANS}}>削除</button>
-                </div>
-              </div>
-            ))}
-            <button className="hb" onClick={addItem} style={{background:INK,color:"#fff",padding:12,borderRadius:2,fontWeight:800,fontSize:14,border:"none",cursor:"pointer",fontFamily:SANS}}>＋ 習慣を追加</button>
-          </div>
+        // 過去ログ
+        e("div",{style:{marginTop:30,borderTop:"1px solid "+LINE,paddingTop:20}},
+          e("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}},
+            e("span",{style:eb()},"PAST LOG"),
+            e("button",{className:"hb",onClick:function(){setLogOpen(function(o){return !o})},style:{background:logOpen?LINE:INK,color:logOpen?INK:"#fff",fontWeight:800,fontSize:12,padding:"7px 14px",borderRadius:2,border:"none",cursor:"pointer"}},logOpen?"閉じる":"過去の記録を追加")
+          ),
+          logOpen&&e("div",{style:{background:SUR,border:"1px solid "+LINE,borderRadius:2,padding:16,display:"grid",gap:10,marginBottom:12}},
+            e("div",null,e("div",{style:eb({fontSize:10,marginBottom:6})},"習慣"),
+              e("select",{value:logItemId,onChange:function(ev){setLogItemId(ev.target.value)},style:inp()},
+                e("option",{value:""},"選択してください"),
+                s.items.map(function(it){return e("option",{key:it.id,value:it.id},it.name||"（名称未設定）")})
+              )
+            ),
+            e("div",null,e("div",{style:eb({fontSize:10,marginBottom:6})},"日付"),e("input",{type:"date",value:logDate,max:yesterday,onChange:function(ev){setLogDate(ev.target.value)},style:inp()})),
+            e("div",null,e("div",{style:eb({fontSize:10,marginBottom:6})},"回数"),e("input",{type:"number",min:1,placeholder:"回数",value:logCount,onChange:function(ev){setLogCount(ev.target.value)},style:inp()})),
+            e("button",{className:"hb",onClick:addPastLog,disabled:!logItemId||!logDate,style:{background:logItemId&&logDate?ACC:FAINT,color:logItemId&&logDate?"#fff":INK3,fontWeight:800,fontSize:14,padding:12,borderRadius:2,border:"none",cursor:logItemId&&logDate?"pointer":"default"}},"追加する")
+          ),
+          s.history.length>0&&e("div",{style:{display:"grid",gap:6}},
+            s.history.slice(0,8).map(function(h){
+              return e("div",{key:h.id,style:{display:"flex",justifyContent:"space-between",fontSize:12,color:INK2,padding:"6px 0",borderBottom:"1px solid "+LINE}},
+                e("span",null,h.date+" · "+h.name),
+                e("span",{style:{fontFamily:MONO,fontWeight:700,color:INK}},"+"+h.pts+" pt")
+              );
+            })
+          )
+        )
+      ),
 
-          <div style={{...EB,marginTop:30,marginBottom:6}}>ご褒美の編集</div>
-          <p style={{fontSize:12,color:INK2,margin:"0 0 12px",lineHeight:1.6}}>▲▼でショップの並び順を変えられます。</p>
-          <div style={{display:"grid",gap:12}}>
-            {s.rewards.map((r,i)=>(
-              <div key={r.id} style={{background:SUR,border:"1px solid "+LINE,borderRadius:2,padding:12,display:"flex",gap:10}}>
-                <div style={{display:"flex",flexDirection:"column",gap:6,justifyContent:"center"}}>
-                  <button className="hb" onClick={()=>mvReward(i,-1)} disabled={i===0} style={{background:i===0?FAINT:LINE,color:i===0?INK3:INK,width:32,height:26,borderRadius:2,fontSize:12,fontWeight:800,border:"none",cursor:i===0?"default":"pointer"}}>▲</button>
-                  <button className="hb" onClick={()=>mvReward(i,1)} disabled={i===s.rewards.length-1} style={{background:i===s.rewards.length-1?FAINT:LINE,color:i===s.rewards.length-1?INK3:INK,width:32,height:26,borderRadius:2,fontSize:12,fontWeight:800,border:"none",cursor:i===s.rewards.length-1?"default":"pointer"}}>▼</button>
-                </div>
-                <div style={{flex:1}}>
-                  <div style={{position:"relative",marginBottom:8}}>
-                    <button className="hb" onClick={e=>{e.stopPropagation();setEmojiPicker(emojiPicker===r.id?null:r.id);}}
-                      style={{background:FAINT,border:"1px solid "+LINE,borderRadius:2,fontSize:22,padding:"4px 10px",cursor:"pointer"}}>
-                      {r.emoji||"🎁"}
-                    </button>
-                    {emojiPicker===r.id&&(
-                      <div onClick={e=>e.stopPropagation()} style={{position:"absolute",top:44,left:0,zIndex:20,background:SUR,border:"1px solid "+LINE,borderRadius:4,padding:8,display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:4,boxShadow:"0 4px 16px rgba(0,0,0,.12)"}}>
-                        {EMOJIS.map(em=>(
-                          <button key={em} onClick={()=>{upReward(r.id,{emoji:em});setEmojiPicker(null);}}
-                            style={{background:"transparent",fontSize:22,padding:4,borderRadius:4,cursor:"pointer",border:"none"}}>
-                            {em}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                  <input style={{...inp,fontWeight:700,marginBottom:8}} placeholder="ご褒美名" value={r.name} onChange={e=>upReward(r.id,{name:e.target.value})}/>
-                  <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-                    <label style={{fontSize:13,color:INK2,display:"flex",alignItems:"center",gap:8}}>
-                      価格（pt）
-                      <input type="number" min={0} placeholder="例：50" style={{...inp,width:90}} value={r.price} onChange={e=>upReward(r.id,{price:e.target.value})}/>
-                    </label>
-                    <button onClick={()=>delReward(r.id)} style={{background:"transparent",color:ACC,fontSize:13,fontWeight:700,border:"none",cursor:"pointer",fontFamily:SANS}}>削除</button>
-                  </div>
-                </div>
-              </div>
-            ))}
-            <button className="hb" onClick={addReward} style={{background:INK,color:"#fff",padding:12,borderRadius:2,fontWeight:800,fontSize:14,border:"none",cursor:"pointer",fontFamily:SANS}}>＋ ご褒美を追加</button>
-          </div>
+      // ===== ショップ =====
+      tab==="shop"&&e("div",null,
+        e("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"flex-end",borderBottom:"2px solid "+LDARK,paddingBottom:12,marginBottom:18}},
+          e("div",null,e("div",{style:eb()},"REWARD SHOP"),e("div",{style:{fontSize:18,fontWeight:800,marginTop:2}},"ためたポイントで交換")),
+          e("div",{style:{textAlign:"right"}},e("div",{style:eb({fontSize:10})},"残ポイント"),e("div",{style:{fontFamily:MONO,fontSize:24,fontWeight:800,color:ACC}},bal+" pt"))
+        ),
+        e("div",{style:{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:12}},
+          s.rewards.map(function(r){
+            var price=Number(r.price)||0,ok=s.balance>=price;
+            return e("div",{key:r.id,style:{border:"1px solid "+(ok?LDARK:LINE),borderRadius:2,background:SUR,overflow:"hidden",display:"flex",flexDirection:"column"}},
+              e("div",{style:{aspectRatio:"4/3",background:ok?INK:FAINT,display:"flex",alignItems:"center",justifyContent:"center",position:"relative"}},
+                e("span",{style:{fontSize:52}},r.emoji||"🎁"),
+                ok&&e("span",{style:{position:"absolute",top:8,left:8,fontFamily:MONO,fontSize:9,letterSpacing:"0.1em",background:ACC,color:"#fff",padding:"3px 6px"}},"交換可能"),
+                r.n>0&&e("span",{style:{position:"absolute",top:8,right:8,fontFamily:MONO,fontSize:10,fontWeight:700,color:ok?"#fff":INK2}},"x"+r.n)
+              ),
+              e("div",{style:{padding:"12px 12px 14px",display:"flex",flexDirection:"column",flex:1}},
+                e("div",{style:{fontWeight:700,fontSize:14,lineHeight:1.35,minHeight:38}},r.name||"（名称未設定）"),
+                e("div",{style:{fontFamily:MONO,fontSize:18,fontWeight:800,margin:"6px 0 10px"}},price,e("span",{style:{fontSize:12}}," pt")),
+                e("button",{className:"hb",disabled:!ok,onClick:function(){redeem(r)},style:{padding:"11px 0",borderRadius:2,fontWeight:800,fontSize:13,background:ok?ACC:FAINT,color:ok?"#fff":INK3,border:ok?"none":"1px solid "+LINE,cursor:ok?"pointer":"default"}},ok?"交換する":"あと "+(price-s.balance)+" pt")
+              )
+            );
+          })
+        )
+      ),
 
-          <div style={{...EB,marginTop:30,marginBottom:10}}>データ</div>
-          <button onClick={resetAll} style={{width:"100%",background:"transparent",color:ACC,border:"1px solid "+ACC,padding:12,borderRadius:2,fontWeight:800,fontSize:14,cursor:"pointer",fontFamily:SANS}}>すべての記録を初期化する</button>
-        </div>}
-      </div>
+      // ===== 設定 =====
+      tab==="settings"&&e("div",null,
+        e("div",{style:eb({marginBottom:12})},"習慣の編集"),
+        e("div",{style:{display:"grid",gap:12}},
+          s.items.map(function(it){
+            return e("div",{key:it.id,style:{background:SUR,border:"1px solid "+LINE,borderRadius:2,padding:12}},
+              e("input",{style:inp({fontWeight:700,marginBottom:8}),placeholder:"習慣名",value:it.name,onChange:function(ev){upItem(it.id,{name:ev.target.value})}}),
+              e("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between"}},
+                e("label",{style:{fontSize:13,color:INK2,display:"flex",alignItems:"center",gap:8}},
+                  "ポイント",
+                  e("input",{type:"number",min:0,placeholder:"例：3",style:inp({width:80}),value:it.pts,onChange:function(ev){upItem(it.id,{pts:ev.target.value})}})
+                ),
+                e("button",{onClick:function(){delItem(it.id)},style:{background:"transparent",color:ACC,fontSize:13,fontWeight:700,border:"none",cursor:"pointer"}},"削除")
+              )
+            );
+          }),
+          e("button",{className:"hb",onClick:addItem,style:{background:INK,color:"#fff",padding:12,borderRadius:2,fontWeight:800,fontSize:14,border:"none",cursor:"pointer"}},"＋ 習慣を追加")
+        ),
 
-      {toast&&(
-        <div style={{position:"fixed",bottom:22,left:"50%",background:INK,color:"#fff",padding:toast.big?"14px 28px":"11px 20px",borderRadius:2,fontSize:toast.big?18:13,fontWeight:800,zIndex:60,animation:toast.big?"bIn .3s ease":"tIn .22s ease",whiteSpace:"nowrap",transform:"translateX(-50%)"}}>
-          {toast.msg}
-        </div>
-      )}
-    </div>
+        e("div",{style:eb({marginTop:30,marginBottom:6})},"ご褒美の編集"),
+        e("p",{style:{fontSize:12,color:INK2,margin:"0 0 12px",lineHeight:1.6}},"▲▼でショップの並び順を変えられます。"),
+        e("div",{style:{display:"grid",gap:12}},
+          s.rewards.map(function(r,i){
+            return e("div",{key:r.id,style:{background:SUR,border:"1px solid "+LINE,borderRadius:2,padding:12,display:"flex",gap:10}},
+              e("div",{style:{display:"flex",flexDirection:"column",gap:6,justifyContent:"center"}},
+                e("button",{className:"hb",onClick:function(){mvReward(i,-1)},disabled:i===0,style:{background:i===0?FAINT:LINE,color:i===0?INK3:INK,width:32,height:26,borderRadius:2,fontSize:12,fontWeight:800,border:"none",cursor:i===0?"default":"pointer"}},"▲"),
+                e("button",{className:"hb",onClick:function(){mvReward(i,1)},disabled:i===s.rewards.length-1,style:{background:i===s.rewards.length-1?FAINT:LINE,color:i===s.rewards.length-1?INK3:INK,width:32,height:26,borderRadius:2,fontSize:12,fontWeight:800,border:"none",cursor:i===s.rewards.length-1?"default":"pointer"}},"▼")
+              ),
+              e("div",{style:{flex:1}},
+                e("div",{style:{position:"relative",marginBottom:8}},
+                  e("button",{className:"hb",onClick:function(ev){ev.stopPropagation();setEmojiPicker(emojiPicker===r.id?null:r.id)},style:{background:FAINT,border:"1px solid "+LINE,borderRadius:2,fontSize:22,padding:"4px 10px",cursor:"pointer"}},r.emoji||"🎁"),
+                  emojiPicker===r.id&&e("div",{onClick:function(ev){ev.stopPropagation()},style:{position:"absolute",top:44,left:0,zIndex:20,background:SUR,border:"1px solid "+LINE,borderRadius:4,padding:8,display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:4,boxShadow:"0 4px 16px rgba(0,0,0,.12)"}},
+                    EMOJIS.map(function(em){return e("button",{key:em,onClick:function(){upReward(r.id,{emoji:em});setEmojiPicker(null)},style:{background:"transparent",fontSize:22,padding:4,borderRadius:4,cursor:"pointer",border:"none"}},em)})
+                  )
+                ),
+                e("input",{style:inp({fontWeight:700,marginBottom:8}),placeholder:"ご褒美名",value:r.name,onChange:function(ev){upReward(r.id,{name:ev.target.value})}}),
+                e("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between"}},
+                  e("label",{style:{fontSize:13,color:INK2,display:"flex",alignItems:"center",gap:8}},
+                    "価格（pt）",
+                    e("input",{type:"number",min:0,placeholder:"例：50",style:inp({width:90}),value:r.price,onChange:function(ev){upReward(r.id,{price:ev.target.value})}})
+                  ),
+                  e("button",{onClick:function(){delReward(r.id)},style:{background:"transparent",color:ACC,fontSize:13,fontWeight:700,border:"none",cursor:"pointer"}},"削除")
+                )
+              )
+            );
+          }),
+          e("button",{className:"hb",onClick:addReward,style:{background:INK,color:"#fff",padding:12,borderRadius:2,fontWeight:800,fontSize:14,border:"none",cursor:"pointer"}},"＋ ご褒美を追加")
+        ),
+
+        e("div",{style:eb({marginTop:30,marginBottom:10})},"データ"),
+        e("button",{onClick:resetAll,style:{width:"100%",background:"transparent",color:ACC,border:"1px solid "+ACC,padding:12,borderRadius:2,fontWeight:800,fontSize:14,cursor:"pointer"}},"すべての記録を初期化する")
+      )
+    ),
+
+    // トースト
+    toast&&e("div",{style:{position:"fixed",bottom:22,left:"50%",background:INK,color:"#fff",padding:toast.big?"14px 28px":"11px 20px",borderRadius:2,fontSize:toast.big?18:13,fontWeight:800,zIndex:60,animation:toast.big?"bIn .3s ease":"tIn .22s ease",whiteSpace:"nowrap",transform:"translateX(-50%)"}},toast.msg)
   );
 }
 
-ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(App));
+ReactDOM.createRoot(document.getElementById("app")).render(React.createElement(App));
 </script>
 </body>
 </html>
