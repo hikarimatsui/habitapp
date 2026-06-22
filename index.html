@@ -163,9 +163,17 @@ function App(){
     var newBal=s.balance+pts;
     var entries=[];
     for(var i=0;i<count;i++)entries.push({id:uid(),name:item.name,pts:Number(item.pts)||0,at:new Date(logDate).getTime(),date:logDate});
+    // ストリーク再計算：過去ログの日付でlastActiveDateの前日を埋めた場合に連続を繋ぐ
     var newStreak=s.streak,newLast=s.lastActiveDate;
-    if(s.lastActiveDate){var diff=dateDiff(logDate,s.lastActiveDate);if(diff===1){newStreak=s.streak+1;newLast=logDate;}}
-    else{newStreak=1;newLast=logDate;}
+    if(!s.lastActiveDate){
+      newStreak=1;newLast=logDate;
+    } else {
+      var diff=dateDiff(logDate,s.lastActiveDate);
+      // logDateがlastActiveDateの前日 → ストリーク+1
+      if(diff===1){newStreak=s.streak+1;newLast=logDate;}
+      // logDateがlastActiveDateより前だが連続していた可能性 → lastActiveDateだけ更新
+      else if(diff>1&&newLast>logDate){newLast=logDate;}
+    }
     var best=Math.max(s.bestStreak,newStreak);
     save(Object.assign({},s,{balance:newBal,totalEarned:s.totalEarned+pts,totalClears:s.totalClears+count,
       streak:newStreak,bestStreak:best,lastActiveDate:newLast,
