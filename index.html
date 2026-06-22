@@ -3,37 +3,31 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<meta name="theme-color" content="#0E0F12" />
-<title>習慣は60日で作れる</title>
+<title>習慣化には60日かかる</title>
 <style>html,body{margin:0;background:#F2F2EF;-webkit-text-size-adjust:100%}</style>
-<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
-<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-<script src="https://unpkg.com/@babel/standalone/babel.min.js" crossorigin></script>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 </head>
 <body>
 <div id="root"></div>
-<script type="text/babel" data-presets="env,react">
-const { useState, useEffect, useRef, useCallback } = React;
-if (typeof window !== "undefined" && !window.storage) {
-  window.storage = {
-    get: async (k) => { const v = localStorage.getItem(k); return v == null ? null : { key: k, value: v }; },
-    set: async (k, v) => { localStorage.setItem(k, v); return { key: k, value: v }; },
-    delete: async (k) => { localStorage.removeItem(k); return { key: k, deleted: true }; },
-    list: async (p = "") => ({ keys: Object.keys(localStorage).filter((x) => x.startsWith(p)) }),
-  };
-}
+<script type="text/babel">
+const {useState,useEffect,useRef,useCallback} = React;
 
-const C = {
-  bg: "#F2F2EF", surface: "#FFFFFF", ink: "#0E0F12",
-  ink2: "#5C616B", ink3: "#9A9EA6", line: "#E3E3DF",
-  lineDark: "#15171B", accent: "#1F35FF", faint: "#F7F7F4",
-};
-const SANS = '"Helvetica Neue",Helvetica,Arial,"Hiragino Sans","Yu Gothic",sans-serif';
-const MONO = '"SF Mono",ui-monospace,Menlo,Consolas,monospace';
-const KEY = "habit60:v3";
-const GOAL = 60;
+if(!window.storage){window.storage={
+  get:async k=>{const v=localStorage.getItem(k);return v==null?null:{key:k,value:v}},
+  set:async(k,v)=>{localStorage.setItem(k,v);return{key:k,value:v}},
+  delete:async k=>{localStorage.removeItem(k);return{key:k,deleted:true}},
+  list:async(p="")=>({keys:Object.keys(localStorage).filter(x=>x.startsWith(p))}),
+};}
 
-const QUOTES = [
+const BG="#F2F2EF",SUR="#FFFFFF",INK="#0E0F12",INK2="#5C616B",INK3="#9A9EA6",
+      LINE="#E3E3DF",LDARK="#15171B",ACC="#1F35FF",FAINT="#F7F7F4";
+const SANS='"Helvetica Neue",Helvetica,Arial,"Hiragino Sans","Yu Gothic",sans-serif';
+const MONO='"SF Mono",ui-monospace,Menlo,Consolas,monospace';
+const KEY="habit60:v4",GOAL=60;
+
+const QUOTES=[
   "われ日々に省みること三あり。 ——論語",
   "千里の道も、一歩から始まる。 ——老子",
   "人は繰り返す行為の産物である。だから卓越性は行為でなく習慣だ。 ——アリストテレス",
@@ -42,286 +36,205 @@ const QUOTES = [
   "鉄は熱いうちに打て。しかし、熱するのは自分自身だ。 ——ゲーテ",
   "大きな仕事は、小さな仕事の積み重ねである。 ——ミケランジェロ",
   "天才とは、一パーセントのひらめきと、九十九パーセントの汗である。 ——エジソン",
-  "一度も失敗したことがない人は、一度も新しいことに挑戦したことのない人だ。 ——アインシュタイン",
   "己に克ちて礼に復るを仁となす。 ——論語",
   "知ることは力なり。 ——フランシス・ベーコン",
   "自分自身を知れ。 ——ソクラテス",
   "行動こそが雄弁である。 ——シェイクスピア",
   "凡事徹底。 ——鍵山秀三郎",
   "水善く万物を利して争わず。 ——老子",
-  "志を立てることが、あらゆる事業の出発点である。 ——ウィリアム・E・チャニング",
   "継続する力こそが、万能の鍵である。 ——ニュートン",
   "なすべきことをなせ。結果はついてくる。 ——カント",
   "静かな海では、優秀な船乗りは育たない。 ——アフリカの諺",
-  "岩を砕くのは、最後の一打ではなく、それ以前の無数の打撃である。 ——ジャック・リス",
   "今日できることを明日に延ばすな。 ——ベンジャミン・フランクリン",
   "木は一日で育たない。 ——中国の諺",
   "過去は変えられない。変えられるのは今日だけだ。 ——アドラー",
-  "志のある人は、最後には必ず志を遂げる。 ——ヴィクトル・ユゴー",
   "困難の中に、機会がある。 ——アインシュタイン",
   "敵に勝つより自分に勝て。 ——武道の格言",
   "焦らず、休まず。 ——ゲーテ",
   "人生は習慣の織物である。 ——スウィフト",
   "自分の心が正しいと思う道を行け。 ——エレノア・ルーズベルト",
-  "われは鍛えることによって強くなった。 ——アンドリュー・ジャクソン",
 ];
+const PRAISE=["すごい！","神！","さすが！","完璧！","最高！","天才！","やばい！","強すぎ！","無敵！","伝説！"];
+const EMOJIS=["☕","🎬","📚","♨️","🎁","🍣","🎮","🛍️","✈️","🏖️","🍰","🎧","🍜","🎯","🏋️","🎪","🌸","🍷","🎨","🎵"];
 
-const PRAISE = [
-  "すごい！","神！","さすが！","完璧！","最高！","天才！",
-  "やばい！","強すぎ！","無敵！","伝説！","完璧すぎ！","圧倒的！",
-];
-
-const EMOJIS = ["☕","🎬","📚","♨️","🎁","🍣","🎮","🛍️","✈️","🏖️","🍰","🎧","🍜","🎯","🏋️","🎪","🌸","🍷","🎨","🎵"];
-
-const DEF = {
-  balance: 0, totalEarned: 0, totalClears: 0,
-  streak: 0, bestStreak: 0, lastActiveDate: null, history: [],
-  items: [
-    { id:"i1", name:"朝6時に起床",   pts:3, date:null, cnt:0 },
-    { id:"i2", name:"30分の運動",     pts:5, date:null, cnt:0 },
-    { id:"i3", name:"読書30分",       pts:2, date:null, cnt:0 },
-    { id:"i4", name:"部屋を片付ける", pts:2, date:null, cnt:0 },
-    { id:"i5", name:"自炊した",       pts:3, date:null, cnt:0 },
+const DEF={balance:0,totalEarned:0,totalClears:0,streak:0,bestStreak:0,lastActiveDate:null,history:[],
+  items:[
+    {id:"i1",name:"朝6時に起床",pts:3,date:null,cnt:0},
+    {id:"i2",name:"30分の運動",pts:5,date:null,cnt:0},
+    {id:"i3",name:"読書30分",pts:2,date:null,cnt:0},
+    {id:"i4",name:"部屋を片付ける",pts:2,date:null,cnt:0},
+    {id:"i5",name:"自炊した",pts:3,date:null,cnt:0},
   ],
-  rewards: [
-    { id:"r1", name:"カフェでコーヒー",     price:20,  n:0, emoji:"☕" },
-    { id:"r2", name:"映画を1本観る",         price:40,  n:0, emoji:"🎬" },
-    { id:"r3", name:"欲しかった本を買う",     price:70,  n:0, emoji:"📚" },
-    { id:"r4", name:"日帰り温泉",           price:120, n:0, emoji:"♨️" },
-    { id:"r5", name:"欲しかったガジェット", price:220, n:0, emoji:"🎁" },
+  rewards:[
+    {id:"r1",name:"カフェでコーヒー",price:20,n:0,emoji:"☕"},
+    {id:"r2",name:"映画を1本観る",price:40,n:0,emoji:"🎬"},
+    {id:"r3",name:"欲しかった本を買う",price:70,n:0,emoji:"📚"},
+    {id:"r4",name:"日帰り温泉",price:120,n:0,emoji:"♨️"},
+    {id:"r5",name:"欲しかったガジェット",price:220,n:0,emoji:"🎁"},
   ],
 };
 
-const uid  = () => Math.random().toString(36).slice(2,9);
-const fmt  = (ms) => { const d=new Date(ms); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; };
-const td   = () => fmt(Date.now());
-const yd   = () => { const d=new Date(); d.setDate(d.getDate()-1); return fmt(d); };
-const doy  = () => { const n=new Date(),s=new Date(n.getFullYear(),0,0); return Math.floor((n-s)/864e5); };
-const pick = (a) => a[Math.floor(Math.random()*a.length)];
+const uid=()=>Math.random().toString(36).slice(2,9);
+const fmt=ms=>{const d=new Date(ms);return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");};
+const td=()=>fmt(Date.now());
+const yd=()=>{const d=new Date();d.setDate(d.getDate()-1);return fmt(d);};
+const doy=()=>{const n=new Date(),s=new Date(n.getFullYear(),0,0);return Math.floor((n-s)/864e5);};
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const dateDiff=(d1,d2)=>Math.round((new Date(d2)-new Date(d1))/86400000);
 
-// 日付文字列の差分（日数）。date2 - date1
-const dateDiff = (d1, d2) => {
-  const t1 = new Date(d1).getTime();
-  const t2 = new Date(d2).getTime();
-  return Math.round((t2 - t1) / 86400000);
-};
+function App(){
+  const [s,setS]=useState(null);
+  const [tab,setTab]=useState("home");
+  const [toast,setToast]=useState(null);
+  const [pulse,setPulse]=useState(false);
+  const [bal,setBal]=useState(0);
+  const [logOpen,setLogOpen]=useState(false);
+  const [logItemId,setLogItemId]=useState("");
+  const [logDate,setLogDate]=useState("");
+  const [logCount,setLogCount]=useState("");
+  const [emojiPicker,setEmojiPicker]=useState(null);
+  const raf=useRef(null);
 
-function App() {
-  const [s, setS]     = useState(null);
-  const [tab, setTab] = useState("home");
-  const [toast, setToast] = useState(null);
-  const [pulse, setPulse] = useState(false);
-  const [bal, setBal] = useState(0);
-  const [logOpen, setLogOpen]     = useState(false);
-  const [logItemId, setLogItemId] = useState("");
-  const [logDate, setLogDate]     = useState("");
-  const [logCount, setLogCount]   = useState("");
-  const [emojiPicker, setEmojiPicker] = useState(null); // reward id
-  const raf = useRef(null);
-
-  useEffect(() => {
-    (async () => {
-      let d = JSON.parse(JSON.stringify(DEF));
-      try {
-        const r = await window.storage.get(KEY);
-        if (r?.value) d = JSON.parse(r.value);
-      } catch {}
-      // 旧フォーマット移行
-      d.items = (d.items||[]).map(it => ({
-        ...it,
-        pts:  it.pts  ?? it.points ?? 0,
-        date: it.date ?? it.lastClearedDate ?? null,
-        cnt:  it.cnt  ?? (it.todayCount || 0),
-      }));
-      d.rewards = (d.rewards||[]).map(r => ({
-        ...r,
-        emoji: r.emoji ?? "🎁",
-      }));
-      // 日付変わりでcntリセット（ストリーク判定はここではしない）
-      const today = td();
-      d.items = d.items.map(it => it.date !== today ? {...it, cnt:0} : it);
-      // ストリーク正規化：lastActiveDateが今日でも昨日でもなければリセット
-      if (d.lastActiveDate && d.lastActiveDate !== today && d.lastActiveDate !== yd()) {
-        d.streak = 0;
-      }
-      setS(d); setBal(d.balance);
+  useEffect(()=>{
+    (async()=>{
+      let d=JSON.parse(JSON.stringify(DEF));
+      try{const r=await window.storage.get(KEY);if(r&&r.value)d=JSON.parse(r.value);}catch(e){}
+      d.items=(d.items||[]).map(it=>({...it,pts:it.pts??it.points??0,date:it.date??it.lastClearedDate??null,cnt:it.cnt??it.todayCount??0}));
+      d.rewards=(d.rewards||[]).map(r=>({...r,emoji:r.emoji||"🎁"}));
+      const today=td();
+      d.items=d.items.map(it=>it.date!==today?{...it,cnt:0}:it);
+      if(d.lastActiveDate&&d.lastActiveDate!==today&&d.lastActiveDate!==yd())d.streak=0;
+      setS(d);setBal(d.balance);
     })();
-    return () => cancelAnimationFrame(raf.current);
-  }, []);
-
-  const save = async (next) => { setS(next); try { await window.storage.set(KEY, JSON.stringify(next)); } catch {} };
-
-  const showToast = (msg, big=false) => {
-    setToast({ msg, big });
-    setTimeout(() => setToast(null), big ? 1400 : 1800);
-  };
-
-  const animBal = useCallback((from, to) => {
-    cancelAnimationFrame(raf.current);
-    const t0 = performance.now();
-    const step = (t) => {
-      const k = Math.min(1,(t-t0)/420);
-      setBal(Math.round(from+(to-from)*(1-Math.pow(1-k,3))));
-      if (k<1) raf.current = requestAnimationFrame(step);
-    };
-    raf.current = requestAnimationFrame(step);
+    return()=>cancelAnimationFrame(raf.current);
   },[]);
 
-  if (!s) return <div style={{fontFamily:SANS,padding:40,textAlign:"center",color:C.ink2}}>読み込み中…</div>;
+  const save=async next=>{setS(next);try{await window.storage.set(KEY,JSON.stringify(next));}catch(e){}};
 
-  const today = td();
-  const yesterday = yd();
-  const doneN = s.items.filter(i=>i.date===today&&i.cnt>0).length;
-  const pct   = s.items.length ? Math.round(doneN/s.items.length*100) : 0;
-  const quote = QUOTES[doy()%QUOTES.length];
+  const showToast=(msg,big)=>{setToast({msg,big});setTimeout(()=>setToast(null),big?1400:1800);};
 
-  // ---- クリア ----
-  const clearItem = (item) => {
-    const pts = Number(item.pts)||0;
-    let streak = s.streak;
-    if      (s.lastActiveDate === today)     { /* 据え置き */ }
-    else if (s.lastActiveDate === yesterday) { streak = s.streak+1; }
-    else                                     { streak = 1; }
-    const best   = Math.max(s.bestStreak, streak);
-    const newBal = s.balance + pts;
-    const cnt    = (item.date===today ? item.cnt : 0)+1;
-    const entry  = {id:uid(),name:item.name,pts,at:Date.now(),date:today};
-    const next   = {
-      ...s, balance:newBal, totalEarned:s.totalEarned+pts,
-      totalClears:s.totalClears+1, streak, bestStreak:best,
-      lastActiveDate:today,
-      items: s.items.map(it=>it.id===item.id?{...it,date:today,cnt}:it),
-      history: [entry,...s.history].slice(0,500),
-    };
-    save(next); animBal(s.balance,newBal);
-    setPulse(true); setTimeout(()=>setPulse(false),320);
-    showToast(`${pick(PRAISE)}  +${pts} pt`, true);
+  const animBal=useCallback((from,to)=>{
+    cancelAnimationFrame(raf.current);
+    const t0=performance.now();
+    const step=t=>{const k=Math.min(1,(t-t0)/420);setBal(Math.round(from+(to-from)*(1-Math.pow(1-k,3))));if(k<1)raf.current=requestAnimationFrame(step);};
+    raf.current=requestAnimationFrame(step);
+  },[]);
+
+  if(!s)return React.createElement("div",{style:{fontFamily:SANS,padding:40,textAlign:"center",color:INK2}},"読み込み中…");
+
+  const today=td(),yesterday=yd();
+  const doneN=s.items.filter(i=>i.date===today&&i.cnt>0).length;
+  const pct=s.items.length?Math.round(doneN/s.items.length*100):0;
+  const quote=QUOTES[doy()%QUOTES.length];
+
+  const clearItem=item=>{
+    const pts=Number(item.pts)||0;
+    let streak=s.streak;
+    if(s.lastActiveDate===today){}
+    else if(s.lastActiveDate===yesterday)streak=s.streak+1;
+    else streak=1;
+    const best=Math.max(s.bestStreak,streak);
+    const newBal=s.balance+pts;
+    const cnt=(item.date===today?item.cnt:0)+1;
+    const entry={id:uid(),name:item.name,pts,at:Date.now(),date:today};
+    const next={...s,balance:newBal,totalEarned:s.totalEarned+pts,totalClears:s.totalClears+1,streak,bestStreak:best,lastActiveDate:today,
+      items:s.items.map(it=>it.id===item.id?{...it,date:today,cnt}:it),
+      history:[entry,...s.history].slice(0,500)};
+    save(next);animBal(s.balance,newBal);
+    setPulse(true);setTimeout(()=>setPulse(false),320);
+    showToast(pick(PRAISE)+"  +"+pts+" pt",true);
   };
 
-  // ---- 過去記録を追加（ストリーク連続判定つき）----
-  const addPastLog = () => {
-    if (!logItemId || !logDate) return;
-    const item = s.items.find(i=>i.id===logItemId);
-    if (!item) return;
-    const count  = Math.max(1, parseInt(logCount)||1);
-    const pts    = (Number(item.pts)||0) * count;
-    const newBal = s.balance + pts;
-    const entries = Array.from({length:count},()=>({
-      id:uid(), name:item.name, pts:Number(item.pts)||0,
-      at:new Date(logDate).getTime(), date:logDate
-    }));
-
-    // ストリーク再計算：過去ログを追加した日付で連続が埋まるか判定
-    let newStreak = s.streak;
-    let newLastActive = s.lastActiveDate;
-    const diff = s.lastActiveDate ? dateDiff(logDate, s.lastActiveDate) : null;
-    // logDateがlastActiveDateの前日なら、ストリーク+1してlastActiveDateを更新
-    if (diff === 1) {
-      newStreak = s.streak + 1;
-      newLastActive = logDate;
-    } else if (!s.lastActiveDate) {
-      newStreak = 1;
-      newLastActive = logDate;
-    }
-    const best = Math.max(s.bestStreak, newStreak);
-
-    const next = {
-      ...s, balance:newBal, totalEarned:s.totalEarned+pts,
-      totalClears:s.totalClears+count,
-      streak: newStreak, bestStreak: best, lastActiveDate: newLastActive,
-      history:[...entries,...s.history].slice(0,500),
-    };
-    save(next); animBal(s.balance,newBal);
-    showToast(`過去記録を追加しました  +${pts} pt`);
-    setLogOpen(false); setLogItemId(""); setLogDate(""); setLogCount("");
+  const addPastLog=()=>{
+    if(!logItemId||!logDate)return;
+    const item=s.items.find(i=>i.id===logItemId);if(!item)return;
+    const count=Math.max(1,parseInt(logCount)||1);
+    const pts=(Number(item.pts)||0)*count;
+    const newBal=s.balance+pts;
+    const entries=Array.from({length:count},()=>({id:uid(),name:item.name,pts:Number(item.pts)||0,at:new Date(logDate).getTime(),date:logDate}));
+    let newStreak=s.streak,newLast=s.lastActiveDate;
+    if(s.lastActiveDate){
+      const diff=dateDiff(logDate,s.lastActiveDate);
+      if(diff===1){newStreak=s.streak+1;newLast=logDate;}
+    }else{newStreak=1;newLast=logDate;}
+    const best=Math.max(s.bestStreak,newStreak);
+    const next={...s,balance:newBal,totalEarned:s.totalEarned+pts,totalClears:s.totalClears+count,
+      streak:newStreak,bestStreak:best,lastActiveDate:newLast,
+      history:[...entries,...s.history].slice(0,500)};
+    save(next);animBal(s.balance,newBal);
+    showToast("過去記録を追加しました  +"+pts+" pt");
+    setLogOpen(false);setLogItemId("");setLogDate("");setLogCount("");
   };
 
-  // ---- ショップ ----
-  const redeem = (r) => {
-    const price = Number(r.price)||0;
-    if (s.balance<price) return;
-    const newBal = s.balance-price;
+  const redeem=r=>{
+    const price=Number(r.price)||0;if(s.balance<price)return;
+    const newBal=s.balance-price;
     save({...s,balance:newBal,rewards:s.rewards.map(x=>x.id===r.id?{...x,n:(x.n||0)+1}:x)});
-    animBal(s.balance,newBal);
-    showToast(`「${r.name}」と交換しました`);
+    animBal(s.balance,newBal);showToast("「"+r.name+"」と交換しました");
   };
 
-  // ---- 設定 ----
-  const upItem    = (id,p) => save({...s,items:s.items.map(it=>it.id===id?{...it,...p}:it)});
-  const addItem   = () => save({...s,items:[...s.items,{id:uid(),name:"",pts:"",date:null,cnt:0}]});
-  const delItem   = (id) => save({...s,items:s.items.filter(it=>it.id!==id)});
-  const upReward  = (id,p) => save({...s,rewards:s.rewards.map(r=>r.id===id?{...r,...p}:r)});
-  const addReward = () => save({...s,rewards:[...s.rewards,{id:uid(),name:"",price:"",n:0,emoji:"🎁"}]});
-  const delReward = (id) => save({...s,rewards:s.rewards.filter(r=>r.id!==id)});
-  const mvReward  = (i,dir) => { const a=[...s.rewards],j=i+dir; if(j<0||j>=a.length)return; [a[i],a[j]]=[a[j],a[i]]; save({...s,rewards:a}); };
-  const resetAll  = () => { if(window.confirm("初期化しますか？")){ const f=JSON.parse(JSON.stringify(DEF)); save(f); setBal(0); } };
+  const upItem=(id,p)=>save({...s,items:s.items.map(it=>it.id===id?{...it,...p}:it)});
+  const addItem=()=>save({...s,items:[...s.items,{id:uid(),name:"",pts:"",date:null,cnt:0}]});
+  const delItem=id=>save({...s,items:s.items.filter(it=>it.id!==id)});
+  const upReward=(id,p)=>save({...s,rewards:s.rewards.map(r=>r.id===id?{...r,...p}:r)});
+  const addReward=()=>save({...s,rewards:[...s.rewards,{id:uid(),name:"",price:"",n:0,emoji:"🎁"}]});
+  const delReward=id=>save({...s,rewards:s.rewards.filter(r=>r.id!==id)});
+  const mvReward=(i,dir)=>{const a=[...s.rewards],j=i+dir;if(j<0||j>=a.length)return;[a[i],a[j]]=[a[j],a[i]];save({...s,rewards:a});};
+  const resetAll=()=>{if(window.confirm("初期化しますか？")){const f=JSON.parse(JSON.stringify(DEF));save(f);setBal(0);}};
 
-  const EB = {fontFamily:MONO,fontSize:11,letterSpacing:"0.18em",color:C.ink2,textTransform:"uppercase"};
+  const EB={fontFamily:MONO,fontSize:11,letterSpacing:"0.18em",color:INK2,textTransform:"uppercase"};
+  const inp={fontFamily:SANS,border:"1px solid "+LINE,background:"#fff",borderRadius:2,padding:"9px 11px",fontSize:14,color:INK,outline:"none",width:"100%",boxSizing:"border-box"};
 
   return (
-    <div style={{fontFamily:SANS,background:C.bg,minHeight:"100vh",color:C.ink,maxWidth:760,margin:"0 auto"}} onClick={()=>emojiPicker&&setEmojiPicker(null)}>
-      <style>{`
-        *{box-sizing:border-box}
-        button{font-family:${SANS};cursor:pointer;border:none}
-        button:disabled{cursor:default}
-        .hb{transition:transform .08s,background .15s,color .15s}
-        .hb:active:not(:disabled){transform:translateY(1px)}
-        input.hi{font-family:${SANS};border:1px solid ${C.line};background:#fff;border-radius:2px;padding:9px 11px;font-size:14px;color:${C.ink};outline:none;width:100%}
-        input.hi:focus{border-color:${C.accent};box-shadow:0 0 0 3px rgba(31,53,255,.12)}
-        select.hi{font-family:${SANS};border:1px solid ${C.line};background:#fff;border-radius:2px;padding:9px 11px;font-size:14px;color:${C.ink};outline:none;width:100%}
-        @keyframes toastIn{from{transform:translate(-50%,14px);opacity:0}to{transform:translate(-50%,0);opacity:1}}
-        @keyframes bigToast{0%{transform:translate(-50%,0) scale(.7);opacity:0}40%{transform:translate(-50%,0) scale(1.08);opacity:1}100%{transform:translate(-50%,0) scale(1);opacity:1}}
-      `}</style>
+    <div style={{fontFamily:SANS,background:BG,minHeight:"100vh",color:INK,maxWidth:760,margin:"0 auto"}} onClick={()=>emojiPicker&&setEmojiPicker(null)}>
+      <style>{".hb{transition:transform .08s,background .15s} .hb:active{transform:translateY(1px)} @keyframes tIn{from{transform:translate(-50%,14px);opacity:0}to{transform:translate(-50%,0);opacity:1}} @keyframes bIn{0%{transform:translate(-50%,0) scale(.7);opacity:0}40%{transform:translate(-50%,0) scale(1.08);opacity:1}100%{transform:translate(-50%,0) scale(1);opacity:1}}"}</style>
 
       {/* トップバー */}
-      <div style={{borderBottom:`2px solid ${C.lineDark}`,background:C.surface,padding:"16px 20px 14px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+      <div style={{borderBottom:"2px solid "+LDARK,background:SUR,padding:"16px 20px 14px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
         <div>
           <div style={EB}>HABIT TRACKER</div>
           <div style={{fontSize:19,fontWeight:800,letterSpacing:"-0.01em",marginTop:3}}>習慣化には60日かかる</div>
         </div>
         <div style={{textAlign:"right"}}>
           <div style={{...EB,fontSize:10}}>BALANCE</div>
-          <div style={{fontFamily:MONO,fontSize:22,fontWeight:700,color:pulse?C.accent:C.ink,transition:"color .2s,transform .2s",transform:pulse?"scale(1.1)":"scale(1)"}}>
+          <div style={{fontFamily:MONO,fontSize:22,fontWeight:700,color:pulse?ACC:INK,transition:"color .2s",transform:pulse?"scale(1.1)":"scale(1)"}}>
             {bal}<span style={{fontSize:12,marginLeft:2}}>pt</span>
           </div>
         </div>
       </div>
 
       {/* タブ */}
-      <div style={{display:"flex",background:C.surface,borderBottom:`1px solid ${C.line}`,position:"sticky",top:0,zIndex:5}}>
+      <div style={{display:"flex",background:SUR,borderBottom:"1px solid "+LINE,position:"sticky",top:0,zIndex:5}}>
         {[{k:"home",l:"今日"},{k:"shop",l:"ショップ"},{k:"settings",l:"設定"}].map(t=>{
           const on=tab===t.k;
-          return <button key={t.k} onClick={()=>setTab(t.k)} style={{flex:1,padding:"13px 0",background:"transparent",fontSize:13,fontWeight:on?800:600,color:on?C.ink:C.ink3,borderBottom:on?`2px solid ${C.accent}`:"2px solid transparent"}}>{t.l}</button>;
+          return <button key={t.k} onClick={()=>setTab(t.k)} style={{flex:1,padding:"13px 0",background:"transparent",fontSize:13,fontWeight:on?800:600,color:on?INK:INK3,border:"none",borderBottom:on?"2px solid "+ACC:"2px solid transparent",cursor:"pointer",fontFamily:SANS}}>{t.l}</button>;
         })}
       </div>
 
       <div style={{padding:"22px 20px 70px"}}>
 
-        {/* ===== 今日タブ ===== */}
-        {tab==="home" && <>
-
-          {/* ストリーク（大きく目立たせる） */}
-          <div style={{background:C.ink,borderRadius:4,padding:"24px 22px",marginBottom:20,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+        {tab==="home" && <div>
+          {/* ストリーク大カード */}
+          <div style={{background:INK,borderRadius:4,padding:"24px 20px",marginBottom:20,display:"flex",alignItems:"center",justifyContent:"space-between",gap:16}}>
             <div>
-              <div style={{...EB,color:"rgba(255,255,255,.5)",fontSize:10}}>CURRENT STREAK</div>
+              <div style={{fontFamily:MONO,fontSize:10,letterSpacing:"0.18em",color:"rgba(255,255,255,.4)",textTransform:"uppercase"}}>CURRENT STREAK</div>
               <div style={{display:"flex",alignItems:"baseline",gap:10,marginTop:4}}>
                 <span style={{fontSize:88,fontWeight:800,lineHeight:.85,letterSpacing:"-0.04em",color:"#fff"}}>{s.streak}</span>
                 <span style={{fontSize:20,fontWeight:700,color:"rgba(255,255,255,.7)"}}>日連続</span>
               </div>
               <div style={{marginTop:10,display:"flex",gap:16}}>
                 <div>
-                  <div style={{...EB,fontSize:9,color:"rgba(255,255,255,.4)"}}>BEST</div>
+                  <div style={{fontFamily:MONO,fontSize:9,letterSpacing:"0.18em",color:"rgba(255,255,255,.4)",textTransform:"uppercase"}}>BEST</div>
                   <div style={{fontFamily:MONO,fontSize:15,fontWeight:700,color:"rgba(255,255,255,.85)"}}>{s.bestStreak} 日</div>
                 </div>
                 <div>
-                  <div style={{...EB,fontSize:9,color:"rgba(255,255,255,.4)"}}>TOTAL CLEARS</div>
+                  <div style={{fontFamily:MONO,fontSize:9,letterSpacing:"0.18em",color:"rgba(255,255,255,.4)",textTransform:"uppercase"}}>TOTAL CLEARS</div>
                   <div style={{fontFamily:MONO,fontSize:15,fontWeight:700,color:"rgba(255,255,255,.85)"}}>{s.totalClears} 回</div>
                 </div>
               </div>
             </div>
-            {/* 60日グリッド：カード内右側 */}
-            <div style={{minWidth:110}}>
-              <div style={{...EB,fontSize:9,color:"rgba(255,255,255,.4)",marginBottom:6,textAlign:"right"}}>
+            <div style={{minWidth:100}}>
+              <div style={{fontFamily:MONO,fontSize:9,letterSpacing:"0.18em",color:"rgba(255,255,255,.4)",textTransform:"uppercase",marginBottom:6,textAlign:"right"}}>
                 {s.streak>=GOAL?"達成":"あと "+(GOAL-s.streak)+" 日"}
               </div>
               <div style={{display:"grid",gridTemplateColumns:"repeat(10,1fr)",gap:2}}>
@@ -333,157 +246,153 @@ function App() {
           </div>
 
           {/* 格言 */}
-          <div style={{borderLeft:`3px solid ${C.accent}`,padding:"8px 0 8px 14px",marginBottom:24}}>
-            <div style={{...EB,fontSize:10,marginBottom:4}}>TODAY'S WORD</div>
-            <div style={{fontSize:15,fontWeight:700,letterSpacing:"-0.01em",lineHeight:1.6}}>{quote}</div>
+          <div style={{borderLeft:"3px solid "+ACC,padding:"8px 0 8px 14px",marginBottom:24}}>
+            <div style={{fontFamily:MONO,fontSize:10,letterSpacing:"0.18em",color:INK2,textTransform:"uppercase",marginBottom:4}}>TODAY'S WORD</div>
+            <div style={{fontSize:15,fontWeight:700,lineHeight:1.6}}>{quote}</div>
           </div>
 
           {/* 今日の進捗 */}
           <div>
             <div style={{display:"flex",justifyContent:"space-between",marginBottom:8}}>
               <span style={EB}>TODAY</span>
-              {doneN===0 && <span style={{fontSize:12,fontWeight:700,color:C.accent}}>今日はまだ未達成</span>}
-              {doneN===s.items.length && s.items.length>0 && <span style={{fontSize:12,fontWeight:700}}>本日コンプリート</span>}
+              {doneN===0&&<span style={{fontSize:12,fontWeight:700,color:ACC}}>今日はまだ未達成</span>}
+              {doneN===s.items.length&&s.items.length>0&&<span style={{fontSize:12,fontWeight:700}}>本日コンプリート</span>}
             </div>
-            <div style={{height:5,background:C.line,marginBottom:14,overflow:"hidden"}}>
-              <div style={{width:`${pct}%`,height:"100%",background:C.ink,transition:"width .4s cubic-bezier(.2,.8,.2,1)"}}/>
+            <div style={{height:5,background:LINE,marginBottom:14,overflow:"hidden"}}>
+              <div style={{width:pct+"%",height:"100%",background:INK,transition:"width .4s"}}/>
             </div>
             <div style={{display:"grid",gap:8}}>
               {s.items.map(it=>{
-                const cnt = it.date===today ? it.cnt : 0;
-                const pts = Number(it.pts)||0;
+                const cnt=it.date===today?it.cnt:0;
+                const pts=Number(it.pts)||0;
                 return (
-                  <div key={it.id} style={{display:"flex",alignItems:"center",gap:12,background:cnt>0?C.faint:C.surface,border:`1px solid ${cnt>0?C.line:C.lineDark}`,borderRadius:2,padding:"13px 14px"}}>
+                  <div key={it.id} style={{display:"flex",alignItems:"center",gap:12,background:cnt>0?FAINT:SUR,border:"1px solid "+(cnt>0?LINE:LDARK),borderRadius:2,padding:"13px 14px"}}>
                     <div style={{flex:1,minWidth:0}}>
                       <div style={{fontWeight:700,fontSize:15}}>{it.name||"（名称未設定）"}</div>
                     </div>
-                    {cnt>0 && <span style={{fontFamily:MONO,fontSize:12,fontWeight:800,color:C.accent}}>×{cnt}</span>}
-                    <span style={{fontFamily:MONO,fontSize:13,fontWeight:700,color:C.ink2}}>+{pts}</span>
-                    <button className="hb" onClick={()=>clearItem(it)} style={{background:C.ink,color:"#fff",fontWeight:800,fontSize:13,padding:"9px 0",width:64,borderRadius:2}}>クリア</button>
+                    {cnt>0&&<span style={{fontFamily:MONO,fontSize:12,fontWeight:800,color:ACC}}>{"x"+cnt}</span>}
+                    <span style={{fontFamily:MONO,fontSize:13,fontWeight:700,color:INK2}}>{"+" +pts}</span>
+                    <button className="hb" onClick={()=>clearItem(it)} style={{background:INK,color:"#fff",fontWeight:800,fontSize:13,padding:"9px 0",width:64,borderRadius:2,border:"none",cursor:"pointer",fontFamily:SANS}}>クリア</button>
                   </div>
                 );
               })}
             </div>
           </div>
 
-          {/* 過去記録を追加 */}
-          <div style={{marginTop:30,borderTop:`1px solid ${C.line}`,paddingTop:20}}>
+          {/* 過去ログ */}
+          <div style={{marginTop:30,borderTop:"1px solid "+LINE,paddingTop:20}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
               <span style={EB}>PAST LOG</span>
-              <button className="hb" onClick={()=>setLogOpen(o=>!o)} style={{background:logOpen?C.line:C.ink,color:logOpen?C.ink:"#fff",fontWeight:800,fontSize:12,padding:"7px 14px",borderRadius:2}}>
+              <button className="hb" onClick={()=>setLogOpen(o=>!o)} style={{background:logOpen?LINE:INK,color:logOpen?INK:"#fff",fontWeight:800,fontSize:12,padding:"7px 14px",borderRadius:2,border:"none",cursor:"pointer",fontFamily:SANS}}>
                 {logOpen?"閉じる":"過去の記録を追加"}
               </button>
             </div>
-            {logOpen && (
-              <div style={{background:C.surface,border:`1px solid ${C.line}`,borderRadius:2,padding:16,display:"grid",gap:10}}>
+            {logOpen&&(
+              <div style={{background:SUR,border:"1px solid "+LINE,borderRadius:2,padding:16,display:"grid",gap:10,marginBottom:12}}>
                 <div>
                   <div style={{...EB,fontSize:10,marginBottom:6}}>習慣</div>
-                  <select className="hi" value={logItemId} onChange={e=>setLogItemId(e.target.value)}>
+                  <select value={logItemId} onChange={e=>setLogItemId(e.target.value)} style={{...inp}}>
                     <option value="">選択してください</option>
                     {s.items.map(it=><option key={it.id} value={it.id}>{it.name||"（名称未設定）"}</option>)}
                   </select>
                 </div>
                 <div>
                   <div style={{...EB,fontSize:10,marginBottom:6}}>日付</div>
-                  <input className="hi" type="date" value={logDate} max={yesterday} onChange={e=>setLogDate(e.target.value)}/>
+                  <input type="date" value={logDate} max={yesterday} onChange={e=>setLogDate(e.target.value)} style={inp}/>
                 </div>
                 <div>
                   <div style={{...EB,fontSize:10,marginBottom:6}}>回数</div>
-                  <input className="hi" type="number" min={1} placeholder="回数" value={logCount} onChange={e=>setLogCount(e.target.value)}/>
+                  <input type="number" min={1} placeholder="回数" value={logCount} onChange={e=>setLogCount(e.target.value)} style={inp}/>
                 </div>
-                <button className="hb" onClick={addPastLog} disabled={!logItemId||!logDate} style={{background:logItemId&&logDate?C.accent:C.faint,color:logItemId&&logDate?"#fff":C.ink3,fontWeight:800,fontSize:14,padding:12,borderRadius:2}}>
+                <button className="hb" onClick={addPastLog} disabled={!logItemId||!logDate}
+                  style={{background:logItemId&&logDate?ACC:FAINT,color:logItemId&&logDate?"#fff":INK3,fontWeight:800,fontSize:14,padding:12,borderRadius:2,border:"none",cursor:"pointer",fontFamily:SANS}}>
                   追加する
                 </button>
               </div>
             )}
-            {s.history.length>0 && (
-              <div style={{marginTop:16,display:"grid",gap:6}}>
+            {s.history.length>0&&(
+              <div style={{display:"grid",gap:6}}>
                 {s.history.slice(0,8).map(h=>(
-                  <div key={h.id} style={{display:"flex",justifyContent:"space-between",fontSize:12,color:C.ink2,padding:"6px 0",borderBottom:`1px solid ${C.line}`}}>
+                  <div key={h.id} style={{display:"flex",justifyContent:"space-between",fontSize:12,color:INK2,padding:"6px 0",borderBottom:"1px solid "+LINE}}>
                     <span>{h.date} · {h.name}</span>
-                    <span style={{fontFamily:MONO,fontWeight:700,color:C.ink}}>+{h.pts} pt</span>
+                    <span style={{fontFamily:MONO,fontWeight:700,color:INK}}>{"+" +h.pts+" pt"}</span>
                   </div>
                 ))}
               </div>
             )}
           </div>
-        </>}
+        </div>}
 
-        {/* ===== ショップタブ ===== */}
-        {tab==="shop" && <>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-end",borderBottom:`2px solid ${C.lineDark}`,paddingBottom:12,marginBottom:18}}>
+        {tab==="shop"&&<div>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-end",borderBottom:"2px solid "+LDARK,paddingBottom:12,marginBottom:18}}>
             <div>
               <div style={EB}>REWARD SHOP</div>
               <div style={{fontSize:18,fontWeight:800,marginTop:2}}>ためたポイントで交換</div>
             </div>
             <div style={{textAlign:"right"}}>
               <div style={{...EB,fontSize:10}}>残ポイント</div>
-              <div style={{fontFamily:MONO,fontSize:24,fontWeight:800,color:C.accent}}>{bal} pt</div>
+              <div style={{fontFamily:MONO,fontSize:24,fontWeight:800,color:ACC}}>{bal+" pt"}</div>
             </div>
           </div>
           <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:12}}>
             {s.rewards.map(r=>{
-              const price = Number(r.price)||0;
-              const ok    = s.balance>=price;
+              const price=Number(r.price)||0,ok=s.balance>=price;
               return (
-                <div key={r.id} style={{border:`1px solid ${ok?C.lineDark:C.line}`,borderRadius:2,background:C.surface,overflow:"hidden",display:"flex",flexDirection:"column"}}>
-                  {/* 絵文字サムネ */}
-                  <div style={{aspectRatio:"4/3",background:ok?C.ink:C.faint,display:"flex",alignItems:"center",justifyContent:"center",position:"relative"}}>
+                <div key={r.id} style={{border:"1px solid "+(ok?LDARK:LINE),borderRadius:2,background:SUR,overflow:"hidden",display:"flex",flexDirection:"column"}}>
+                  <div style={{aspectRatio:"4/3",background:ok?INK:FAINT,display:"flex",alignItems:"center",justifyContent:"center",position:"relative"}}>
                     <span style={{fontSize:52}}>{r.emoji||"🎁"}</span>
-                    {ok  && <span style={{position:"absolute",top:8,left:8,fontFamily:MONO,fontSize:9,letterSpacing:"0.1em",background:C.accent,color:"#fff",padding:"3px 6px"}}>交換可能</span>}
-                    {r.n>0 && <span style={{position:"absolute",top:8,right:8,fontFamily:MONO,fontSize:10,fontWeight:700,color:ok?"#fff":C.ink2}}>×{r.n}</span>}
+                    {ok&&<span style={{position:"absolute",top:8,left:8,fontFamily:MONO,fontSize:9,letterSpacing:"0.1em",background:ACC,color:"#fff",padding:"3px 6px"}}>交換可能</span>}
+                    {r.n>0&&<span style={{position:"absolute",top:8,right:8,fontFamily:MONO,fontSize:10,fontWeight:700,color:ok?"#fff":INK2}}>{"x"+r.n}</span>}
                   </div>
                   <div style={{padding:"12px 12px 14px",display:"flex",flexDirection:"column",flex:1}}>
                     <div style={{fontWeight:700,fontSize:14,lineHeight:1.35,minHeight:38}}>{r.name||"（名称未設定）"}</div>
                     <div style={{fontFamily:MONO,fontSize:18,fontWeight:800,margin:"6px 0 10px"}}>{price}<span style={{fontSize:12}}> pt</span></div>
                     <button className="hb" disabled={!ok} onClick={()=>redeem(r)}
-                      style={{padding:"11px 0",borderRadius:2,fontWeight:800,fontSize:13,background:ok?C.accent:C.faint,color:ok?"#fff":C.ink3,border:ok?"none":`1px solid ${C.line}`}}>
-                      {ok?"交換する":`あと ${price-s.balance} pt`}
+                      style={{padding:"11px 0",borderRadius:2,fontWeight:800,fontSize:13,background:ok?ACC:FAINT,color:ok?"#fff":INK3,border:ok?"none":"1px solid "+LINE,cursor:ok?"pointer":"default",fontFamily:SANS}}>
+                      {ok?"交換する":"あと "+(price-s.balance)+" pt"}
                     </button>
                   </div>
                 </div>
               );
             })}
           </div>
-        </>}
+        </div>}
 
-        {/* ===== 設定タブ ===== */}
-        {tab==="settings" && <>
+        {tab==="settings"&&<div>
           <div style={{...EB,marginBottom:12}}>習慣の編集</div>
           <div style={{display:"grid",gap:12}}>
             {s.items.map(it=>(
-              <div key={it.id} style={{background:C.surface,border:`1px solid ${C.line}`,borderRadius:2,padding:12}}>
-                <input className="hi" style={{fontWeight:700,marginBottom:8}} placeholder="習慣名" value={it.name} onChange={e=>upItem(it.id,{name:e.target.value})}/>
+              <div key={it.id} style={{background:SUR,border:"1px solid "+LINE,borderRadius:2,padding:12}}>
+                <input style={{...inp,fontWeight:700,marginBottom:8}} placeholder="習慣名" value={it.name} onChange={e=>upItem(it.id,{name:e.target.value})}/>
                 <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-                  <label style={{fontSize:13,color:C.ink2,display:"flex",alignItems:"center",gap:8}}>
+                  <label style={{fontSize:13,color:INK2,display:"flex",alignItems:"center",gap:8}}>
                     ポイント
-                    <input className="hi" type="number" min={0} placeholder="例：3" style={{width:80}} value={it.pts} onChange={e=>upItem(it.id,{pts:e.target.value})}/>
+                    <input type="number" min={0} placeholder="例：3" style={{...inp,width:80}} value={it.pts} onChange={e=>upItem(it.id,{pts:e.target.value})}/>
                   </label>
-                  <button onClick={()=>delItem(it.id)} style={{background:"transparent",color:C.accent,fontSize:13,fontWeight:700}}>削除</button>
+                  <button onClick={()=>delItem(it.id)} style={{background:"transparent",color:ACC,fontSize:13,fontWeight:700,border:"none",cursor:"pointer",fontFamily:SANS}}>削除</button>
                 </div>
               </div>
             ))}
-            <button className="hb" onClick={addItem} style={{background:C.ink,color:"#fff",padding:12,borderRadius:2,fontWeight:800,fontSize:14}}>＋ 習慣を追加</button>
+            <button className="hb" onClick={addItem} style={{background:INK,color:"#fff",padding:12,borderRadius:2,fontWeight:800,fontSize:14,border:"none",cursor:"pointer",fontFamily:SANS}}>＋ 習慣を追加</button>
           </div>
 
           <div style={{...EB,marginTop:30,marginBottom:6}}>ご褒美の編集</div>
-          <p style={{fontSize:12,color:C.ink2,margin:"0 0 12px",lineHeight:1.6}}>▲▼でショップの並び順を変えられます。</p>
+          <p style={{fontSize:12,color:INK2,margin:"0 0 12px",lineHeight:1.6}}>▲▼でショップの並び順を変えられます。</p>
           <div style={{display:"grid",gap:12}}>
             {s.rewards.map((r,i)=>(
-              <div key={r.id} style={{background:C.surface,border:`1px solid ${C.line}`,borderRadius:2,padding:12,display:"flex",gap:10}}>
+              <div key={r.id} style={{background:SUR,border:"1px solid "+LINE,borderRadius:2,padding:12,display:"flex",gap:10}}>
                 <div style={{display:"flex",flexDirection:"column",gap:6,justifyContent:"center"}}>
-                  <button className="hb" onClick={()=>mvReward(i,-1)} disabled={i===0} style={{background:i===0?C.faint:C.line,color:i===0?C.ink3:C.ink,width:32,height:26,borderRadius:2,fontSize:12,fontWeight:800}}>▲</button>
-                  <button className="hb" onClick={()=>mvReward(i,1)} disabled={i===s.rewards.length-1} style={{background:i===s.rewards.length-1?C.faint:C.line,color:i===s.rewards.length-1?C.ink3:C.ink,width:32,height:26,borderRadius:2,fontSize:12,fontWeight:800}}>▼</button>
+                  <button className="hb" onClick={()=>mvReward(i,-1)} disabled={i===0} style={{background:i===0?FAINT:LINE,color:i===0?INK3:INK,width:32,height:26,borderRadius:2,fontSize:12,fontWeight:800,border:"none",cursor:i===0?"default":"pointer"}}>▲</button>
+                  <button className="hb" onClick={()=>mvReward(i,1)} disabled={i===s.rewards.length-1} style={{background:i===s.rewards.length-1?FAINT:LINE,color:i===s.rewards.length-1?INK3:INK,width:32,height:26,borderRadius:2,fontSize:12,fontWeight:800,border:"none",cursor:i===s.rewards.length-1?"default":"pointer"}}>▼</button>
                 </div>
                 <div style={{flex:1}}>
-                  {/* 絵文字ピッカー */}
                   <div style={{position:"relative",marginBottom:8}}>
                     <button className="hb" onClick={e=>{e.stopPropagation();setEmojiPicker(emojiPicker===r.id?null:r.id);}}
-                      style={{background:C.faint,border:`1px solid ${C.line}`,borderRadius:2,fontSize:22,padding:"4px 10px",cursor:"pointer"}}>
+                      style={{background:FAINT,border:"1px solid "+LINE,borderRadius:2,fontSize:22,padding:"4px 10px",cursor:"pointer"}}>
                       {r.emoji||"🎁"}
                     </button>
-                    {emojiPicker===r.id && (
-                      <div onClick={e=>e.stopPropagation()} style={{position:"absolute",top:40,left:0,zIndex:20,background:C.surface,border:`1px solid ${C.line}`,borderRadius:4,padding:8,display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:4,boxShadow:"0 4px 16px rgba(0,0,0,.12)"}}>
+                    {emojiPicker===r.id&&(
+                      <div onClick={e=>e.stopPropagation()} style={{position:"absolute",top:44,left:0,zIndex:20,background:SUR,border:"1px solid "+LINE,borderRadius:4,padding:8,display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:4,boxShadow:"0 4px 16px rgba(0,0,0,.12)"}}>
                         {EMOJIS.map(em=>(
                           <button key={em} onClick={()=>{upReward(r.id,{emoji:em});setEmojiPicker(null);}}
                             style={{background:"transparent",fontSize:22,padding:4,borderRadius:4,cursor:"pointer",border:"none"}}>
@@ -493,28 +402,27 @@ function App() {
                       </div>
                     )}
                   </div>
-                  <input className="hi" style={{fontWeight:700,marginBottom:8}} placeholder="ご褒美名" value={r.name} onChange={e=>upReward(r.id,{name:e.target.value})}/>
+                  <input style={{...inp,fontWeight:700,marginBottom:8}} placeholder="ご褒美名" value={r.name} onChange={e=>upReward(r.id,{name:e.target.value})}/>
                   <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-                    <label style={{fontSize:13,color:C.ink2,display:"flex",alignItems:"center",gap:8}}>
+                    <label style={{fontSize:13,color:INK2,display:"flex",alignItems:"center",gap:8}}>
                       価格（pt）
-                      <input className="hi" type="number" min={0} placeholder="例：50" style={{width:90}} value={r.price} onChange={e=>upReward(r.id,{price:e.target.value})}/>
+                      <input type="number" min={0} placeholder="例：50" style={{...inp,width:90}} value={r.price} onChange={e=>upReward(r.id,{price:e.target.value})}/>
                     </label>
-                    <button onClick={()=>delReward(r.id)} style={{background:"transparent",color:C.accent,fontSize:13,fontWeight:700}}>削除</button>
+                    <button onClick={()=>delReward(r.id)} style={{background:"transparent",color:ACC,fontSize:13,fontWeight:700,border:"none",cursor:"pointer",fontFamily:SANS}}>削除</button>
                   </div>
                 </div>
               </div>
             ))}
-            <button className="hb" onClick={addReward} style={{background:C.ink,color:"#fff",padding:12,borderRadius:2,fontWeight:800,fontSize:14}}>＋ ご褒美を追加</button>
+            <button className="hb" onClick={addReward} style={{background:INK,color:"#fff",padding:12,borderRadius:2,fontWeight:800,fontSize:14,border:"none",cursor:"pointer",fontFamily:SANS}}>＋ ご褒美を追加</button>
           </div>
 
           <div style={{...EB,marginTop:30,marginBottom:10}}>データ</div>
-          <button onClick={resetAll} style={{width:"100%",background:"transparent",color:C.accent,border:`1px solid ${C.accent}`,padding:12,borderRadius:2,fontWeight:800,fontSize:14}}>すべての記録を初期化する</button>
-        </>}
+          <button onClick={resetAll} style={{width:"100%",background:"transparent",color:ACC,border:"1px solid "+ACC,padding:12,borderRadius:2,fontWeight:800,fontSize:14,cursor:"pointer",fontFamily:SANS}}>すべての記録を初期化する</button>
+        </div>}
       </div>
 
-      {/* トースト */}
-      {toast && (
-        <div style={{position:"fixed",bottom:22,left:"50%",background:C.ink,color:"#fff",padding:toast.big?"14px 28px":"11px 20px",borderRadius:2,fontSize:toast.big?18:13,fontWeight:800,zIndex:60,animation:toast.big?"bigToast .3s ease":"toastIn .22s ease",whiteSpace:"nowrap"}}>
+      {toast&&(
+        <div style={{position:"fixed",bottom:22,left:"50%",background:INK,color:"#fff",padding:toast.big?"14px 28px":"11px 20px",borderRadius:2,fontSize:toast.big?18:13,fontWeight:800,zIndex:60,animation:toast.big?"bIn .3s ease":"tIn .22s ease",whiteSpace:"nowrap",transform:"translateX(-50%)"}}>
           {toast.msg}
         </div>
       )}
@@ -522,7 +430,7 @@ function App() {
   );
 }
 
-ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(App));
 </script>
 </body>
 </html>
